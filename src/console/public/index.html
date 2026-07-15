@@ -651,16 +651,31 @@
   <div class="modal-overlay" id="connectModal">
     <div class="modal">
       <h3>Log in</h3>
-      <p>Enter your email. ARIKE finds or creates a Circle-managed wallet tied to it — no password, no MetaMask. Circle holds the keys; your email just tells ARIKE which wallet is yours.</p>
-      <input id="connectInput" type="email" placeholder="you@example.com" />
-      <p id="connectError" style="display:none; color:var(--danger); font-size:12px; margin:-6px 0 12px;"></p>
-      <div class="modal-actions">
-        <button class="modal-cancel" id="connectCancel">Cancel</button>
-        <button class="btn" id="connectConfirm">Log in</button>
+      <p id="loginStepText">Enter your email. Circle sends you a real one-time code — no password, no MetaMask, and Circle holds the keys the whole time.</p>
+
+      <div id="loginStepEmail">
+        <input id="connectInput" type="email" placeholder="you@example.com" />
+        <p id="connectError" style="display:none; color:var(--danger); font-size:12px; margin:-6px 0 12px;"></p>
+        <div class="modal-actions">
+          <button class="modal-cancel" id="connectCancel">Cancel</button>
+          <button class="btn" id="connectConfirm">Send code</button>
+        </div>
+      </div>
+
+      <div id="loginStepOtp" style="display:none">
+        <div class="modal-actions">
+          <button class="modal-cancel" id="otpCancel">Cancel</button>
+          <button class="btn" id="otpVerifyBtn">Verify email code</button>
+        </div>
+      </div>
+
+      <div id="loginStepWallet" style="display:none">
+        <p id="walletStepText" style="color:var(--accent3)">Setting up your wallet…</p>
       </div>
     </div>
   </div>
 
+  <script src="/otp-bundle.js"></script>
   <script>
     const SUN = 'M12 3v2m0 14v2M5 5l1.4 1.4M17.6 17.6L19 19M3 12h2m14 0h2M5 19l1.4-1.4M17.6 6.4L19 5M12 8a4 4 0 100 8 4 4 0 000-8z';
     const MOON = 'M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z';
@@ -696,10 +711,8 @@
       } else {
         area.innerHTML = `<button class="connect-btn" id="connectBtn">Log in</button>`;
         document.getElementById('connectBtn').addEventListener('click', () => {
+          resetLoginModal();
           document.getElementById('connectModal').classList.add('show');
-          document.getElementById('connectInput').value = '';
-          document.getElementById('connectError').style.display = 'none';
-          document.getElementById('connectInput').style.borderColor = '';
           document.getElementById('connectInput').focus();
         });
       }
@@ -715,9 +728,27 @@
       if (connected) fetchBalanceHint();
     }
 
+    function resetLoginModal() {
+      document.getElementById('loginStepEmail').style.display = 'block';
+      document.getElementById('loginStepOtp').style.display = 'none';
+      document.getElementById('loginStepWallet').style.display = 'none';
+      document.getElementById('loginStepText').textContent =
+        'Enter your email. Circle sends you a real one-time code — no password, no MetaMask, and Circle holds the keys the whole time.';
+      document.getElementById('connectInput').value = '';
+      document.getElementById('connectError').style.display = 'none';
+      document.getElementById('connectInput').style.borderColor = '';
+      const btn = document.getElementById('connectConfirm');
+      btn.disabled = false;
+      btn.textContent = 'Send code';
+    }
+
     document.getElementById('connectCancel').addEventListener('click', () => {
       document.getElementById('connectModal').classList.remove('show');
     });
+    document.getElementById('otpCancel').addEventListener('click', () => {
+      document.getElementById('connectModal').classList.remove('show');
+    });
+
     document.getElementById('connectConfirm').addEventListener('click', async () => {
       const email = document.getElementById('connectInput').value.trim();
       const errEl = document.getElementById('connectError');
@@ -733,32 +764,98 @@
       }
 
       btn.disabled = true;
-      btn.textContent = 'Setting up your wallet…';
+      btn.textContent = 'Sending code…';
       try {
-        const res = await fetch('/api/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email }),
-        });
-        const data = await res.json();
-        if (!res.ok || !data.ok) {
-          errEl.textContent = data.message || data.error || 'Login failed — try again.';
-          errEl.style.display = 'block';
-          return;
-        }
-        localStorage.setItem('arike_wallet', data.address);
-        localStorage.setItem('arike_email', email);
-        document.getElementById('connectModal').classList.remove('show');
-        renderWalletArea();
-        updateFormLocks();
+        await window.ArikeOTP.init();
+        await window.ArikeOTP.requestOtp(email);
+        localStorage.setItem('arike_pending_email', email);
+
+        document.getElementById('loginStepEmail').style.display = 'none';
+        document.getElementById('loginStepOtp').style.display = 'block';
+        document.getElementById('loginStepText').textContent =
+          `We sent a code to ${email}. Click below to enter it.`;
       } catch (err) {
-        errEl.textContent = 'Could not reach the backend — try again.';
+        errEl.textContent = err.message || 'Could not send code — try again.';
         errEl.style.display = 'block';
       } finally {
         btn.disabled = false;
-        btn.textContent = 'Log in';
+        btn.textContent = 'Send code';
       }
     });
+
+    document.getElementById('otpVerifyBtn').addEventListener('click', () => {
+      // Opens Circle's own hosted OTP entry UI (a secure overlay Circle
+      // controls) — our modal just waits for onLoginComplete to fire.
+      window.ArikeOTP.verifyOtp();
+    });
+
+    async function proceedAfterLogin(loginResult) {
+      document.getElementById('loginStepOtp').style.display = 'none';
+      document.getElementById('loginStepWallet').style.display = 'block';
+      document.getElementById('loginStepText').textContent = 'Code verified.';
+      const walletText = document.getElementById('walletStepText');
+      walletText.textContent = 'Setting up your wallet…';
+
+      try {
+        const initRes = await window.ArikeOTP.initializeUser(loginResult.userToken);
+
+        if (initRes.ok && initRes.data.challengeId) {
+          walletText.textContent = 'Creating your wallet — approve in the popup…';
+          window.ArikeOTP.executeChallenge(initRes.data.challengeId, async (err) => {
+            if (err) {
+              walletText.textContent = 'Wallet creation failed: ' + (err.message || 'unknown error');
+              return;
+            }
+            await new Promise((r) => setTimeout(r, 2000)); // give Circle a moment to index the wallet
+            await finishLogin(loginResult.userToken);
+          });
+          return;
+        }
+
+        // 155106 = user already initialized — just list their existing wallet
+        if (!initRes.ok && initRes.data && initRes.data.code === 155106) {
+          await finishLogin(loginResult.userToken);
+          return;
+        }
+
+        walletText.textContent = 'Could not initialize user: ' + (initRes.data.message || initRes.data.error || 'unknown error');
+      } catch (err) {
+        walletText.textContent = 'Wallet setup failed: ' + err.message;
+      }
+    }
+
+    async function finishLogin(userToken) {
+      const walletText = document.getElementById('walletStepText');
+      walletText.textContent = 'Loading your wallet address…';
+      const data = await window.ArikeOTP.listWallets(userToken);
+      const wallet = data.wallets && data.wallets[0];
+      if (!wallet) {
+        walletText.textContent = 'No wallet found yet — try Log in again in a moment.';
+        return;
+      }
+      const email = localStorage.getItem('arike_pending_email') || '';
+      localStorage.setItem('arike_wallet', wallet.address);
+      localStorage.setItem('arike_email', email);
+      document.getElementById('connectModal').classList.remove('show');
+      renderWalletArea();
+      updateFormLocks();
+    }
+
+    let otpClientReady = false;
+    async function ensureOtpClientReady() {
+      if (otpClientReady) return;
+      await window.ArikeOTP.init();
+      window.ArikeOTP.onLoginComplete((result, error) => {
+        if (result) {
+          proceedAfterLogin(result);
+        } else if (error) {
+          document.getElementById('walletStepText').textContent =
+            'Email verification failed: ' + (error.message || 'try again');
+        }
+      });
+      otpClientReady = true;
+    }
+    ensureOtpClientReady().catch((err) => console.error('OTP client init failed:', err));
 
     let cachedUsdcBalance = null;
 
