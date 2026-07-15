@@ -154,12 +154,37 @@ illustrative (clearly-labeled, non-onchain) animation instead of erroring.
 
 ## 4. CCTP V2 — let a provider on another chain get paid in USDC on Arc
 
-Not yet wired into this repo — next step once the core demo works. CCTP V2
-is the current standard (V1 is legacy, phasing out July 31, 2026). Two ways in:
-- **Bridge Kit** — simpler SDK, best for the frontend/consumer side
-- **Raw CCTP** — for backend-initiated transfers
+Now wired into `src/lib/bridge.ts`, using CCTP V2 via Circle's Bridge Kit.
+It operates through your **existing Circle-managed wallet** (same
+`CIRCLE_API_KEY`/`CIRCLE_ENTITY_SECRET` as everything else) — no raw
+private key needed anywhere in ARIKE.
 
-See: [Bridge USDC to Arc with CCTP & Bridge Kit](https://community.arc.network/public/blogs/quickstart-spotlight-bridge-usdc-to-arc-with-cctp-bridge-kit)
+CCTP V2 is the current standard (V1 is legacy, phasing out July 31, 2026).
+
+Try it:
+```
+npm run try:bridge -- --address=0xYourWalletAddress --amount=5.00 --from=Base_Sepolia
+```
+Note: your wallet needs a small USDC balance on the **source** chain
+(e.g. Base Sepolia) — the Arc faucet only funds you on Arc itself. Get
+Base Sepolia testnet USDC from Circle's faucet, selecting Base Sepolia as
+the network.
+
+---
+
+## 4b. Swap — exchange USDC/EURC on the same chain
+
+Wired into `src/lib/swap.ts` via Circle's Swap Kit. Arc Testnet is one of
+the only testnets Swap supports (USDC, EURC, and cirBTC).
+
+Requires one more credential beyond your API key — a free **Kit Key**:
+1. Circle Console → find the Swap/App Kit section → generate a Kit Key
+2. Add to `.env`: `CIRCLE_KIT_KEY=...`
+
+Try it:
+```
+npm run try:swap -- --address=0xYourWalletAddress --amount=1.00 --from=USDC --to=EURC
+```
 
 ---
 
@@ -203,6 +228,7 @@ circle skill install --tool claude-code
 | Nanopayments (x402) | Step 2 — already scaffolded in `src/consumer/agent.ts` |
 | Contracts | Step 3 — `ArikeDirectory` + `ArikeLedger` ready to deploy |
 | Gateway | Step 2 — same balance Nanopayments draw from |
-| CCTP V2 | Step 4 — planned, not yet wired |
+| CCTP V2 | Step 4 — wired in `src/lib/bridge.ts`, try with `npm run try:bridge` |
+| Swap (App Kit) | Step 4b — wired in `src/lib/swap.ts`, try with `npm run try:swap` |
 | Paymaster | Step 5 — planned, not yet wired |
 | StableFX | Institutional-gated — pitch only, not built |
