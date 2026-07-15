@@ -4,230 +4,315 @@
 <meta charset="UTF-8" />
 <title>ARIKE Console</title>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="preconnect" href="https://rsms.me/" />
+<link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
 <style>
   :root {
-    --bg: #0b0b0d;
-    --surface: #151518;
-    --border: #26262b;
-    --text: #f2f2f0;
-    --muted: #8a8a92;
-    --accent: #6ee7b7;
-    --accent-dim: #1c3a30;
+    --bg: #111111;
+    --surface: #1a1a1a;
+    --card2: #222222;
+    --border: rgba(255,255,255,.07);
+    --border2: rgba(255,255,255,.12);
+    --accent: #8b5cf6;
+    --accent3: #a855f7;
+    --accent4: #c084fc;
+    --text: #ffffff;
+    --text2: #a0a0a0;
+    --text3: #666666;
+    --danger: #f87171;
+    --radius: 14px;
+    --radius-sm: 10px;
   }
   * { box-sizing: border-box; }
+  html, body {
+    background: var(--bg);
+    -webkit-font-smoothing: antialiased;
+  }
   body {
     margin: 0;
-    background: var(--bg);
     color: var(--text);
-    font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
-    padding: 40px 24px;
+    font-family: 'Inter var', 'Inter', -apple-system, sans-serif;
+    font-feature-settings: 'liga' 1, 'calt' 1, 'tnum' 1;
+    font-size: 15px;
+    line-height: 1.6;
+    letter-spacing: -.01em;
+    padding: 48px 24px 80px;
   }
-  .wrap { max-width: 880px; margin: 0 auto; }
+  .wrap { max-width: 920px; margin: 0 auto; }
+
   header {
     display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    margin-bottom: 8px;
-    flex-wrap: wrap;
-    gap: 8px;
-  }
-  h1 {
-    font-size: 28px;
-    letter-spacing: -0.02em;
-    margin: 0;
-  }
-  h1 span { color: var(--accent); }
-  .status {
-    font-size: 13px;
-    color: var(--muted);
-    display: flex;
     align-items: center;
-    gap: 6px;
+    justify-content: space-between;
+    margin-bottom: 6px;
+    flex-wrap: wrap;
+    gap: 12px;
   }
-  .dot {
-    width: 7px; height: 7px; border-radius: 50%;
+  .brand { display: flex; align-items: center; gap: 12px; }
+  .logo {
+    width: 38px; height: 38px; border-radius: 11px;
     background: var(--accent);
-    box-shadow: 0 0 0 0 rgba(110,231,183,0.6);
-    animation: pulse 2s infinite;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 4px 16px rgba(139,92,246,.45), inset 0 1px 0 rgba(255,255,255,.15);
+    flex-shrink: 0;
   }
-  @keyframes pulse {
-    0% { box-shadow: 0 0 0 0 rgba(110,231,183,0.5); }
-    70% { box-shadow: 0 0 0 8px rgba(110,231,183,0); }
-    100% { box-shadow: 0 0 0 0 rgba(110,231,183,0); }
+  .logo svg { width: 20px; height: 20px; }
+  h1 {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -.02em;
+    margin: 0;
+    color: var(--text);
   }
+  h1 span { color: var(--accent4); font-weight: 400; }
+
+  .net-pill {
+    font-variant-numeric: tabular-nums;
+    font-size: 13px;
+    color: var(--accent3);
+    border: 1px solid rgba(168,85,247,.3);
+    padding: 5px 12px 5px 10px;
+    border-radius: 100px;
+    background: rgba(168,85,247,.08);
+    display: flex; align-items: center; gap: 6px;
+  }
+  .net-pill::before {
+    content: '';
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--accent3);
+    box-shadow: 0 0 6px var(--accent3);
+    animation: pulse 2s ease infinite;
+  }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .35; } }
+
   .subtitle-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 16px;
-    margin-bottom: 32px;
+    margin: 20px 0 28px;
     flex-wrap: wrap;
   }
-  .subtitle { color: var(--muted); margin: 0; font-size: 15px; }
+  .subtitle { color: var(--text2); margin: 0; font-size: 14px; max-width: 520px; }
 
-  .simulate-btn {
+  .btn {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 12px 22px;
     background: var(--accent);
-    color: #06120d;
     border: none;
-    border-radius: 8px;
-    padding: 10px 18px;
-    font-size: 13px;
-    font-weight: 600;
+    border-radius: 100px;
+    color: #f3e8ff;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: .01em;
     cursor: pointer;
     white-space: nowrap;
-    transition: opacity 0.15s;
+    box-shadow: 0 5px 24px rgba(168,85,247,.4), inset 0 1px 0 rgba(255,255,255,.15);
+    transition: all .2s;
   }
-  .simulate-btn:hover { opacity: 0.88; }
-  .simulate-btn:disabled { opacity: 0.5; cursor: default; }
+  .btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 7px 28px rgba(168,85,247,.5); }
+  .btn:disabled { opacity: .4; cursor: default; transform: none; box-shadow: none; }
+
+  .btn-sm {
+    width: 100%;
+    padding: 10px;
+    background: rgba(168,85,247,.12);
+    border: 1px solid rgba(168,85,247,.28);
+    border-radius: var(--radius-sm);
+    color: var(--accent3);
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all .18s;
+  }
+  .btn-sm:hover:not(:disabled) { background: rgba(168,85,247,.2); border-color: rgba(168,85,247,.45); }
+  .btn-sm:disabled { opacity: .4; cursor: default; }
 
   .agent-log {
     display: none;
     background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 16px 18px;
+    border: 1px solid var(--border2);
+    border-radius: var(--radius);
+    padding: 18px 20px;
     margin-bottom: 24px;
-    font-family: "SF Mono", Consolas, monospace;
+    font-family: 'SF Mono', Consolas, monospace;
     font-size: 13px;
-    color: var(--muted);
+    color: var(--text2);
     line-height: 1.9;
   }
-  .agent-log.active { display: block; }
-  .agent-log .line { opacity: 0; animation: appear 0.3s forwards; }
+  .agent-log.active { display: block; animation: up .25s ease both; }
+  .agent-log .line { opacity: 0; animation: appear .3s forwards; }
   @keyframes appear { to { opacity: 1; } }
-  .agent-log .done { color: var(--accent); }
+  @keyframes up { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+  .agent-log .done { color: var(--accent4); }
 
   .stats {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 12px;
-    margin-bottom: 32px;
+    margin-bottom: 28px;
   }
   .stat {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 16px 18px;
+    background: linear-gradient(145deg, #1a1a1a 0%, #111111 50%, #1a1a1a 100%);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(0,0,0,.4);
   }
-  .stat .label { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
-  .stat .value { font-size: 24px; margin-top: 6px; font-variant-numeric: tabular-nums; }
+  .stat::before {
+    content: '';
+    position: absolute; top: -20px; right: -20px;
+    width: 110px; height: 110px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(168,85,247,.18), transparent 70%);
+    pointer-events: none;
+  }
+  .stat .label {
+    font-size: 11px; color: rgba(255,255,255,.4);
+    text-transform: uppercase; letter-spacing: .16em;
+    margin-bottom: 8px; font-weight: 600;
+  }
+  .stat .value {
+    font-size: 26px; font-weight: 700; letter-spacing: -.03em;
+    font-variant-numeric: tabular-nums;
+    color: #f0f0f0;
+  }
 
-  .feed { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  .section-title {
+    font-size: 12px;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: .16em;
+    font-weight: 600;
+    margin: 40px 0 12px 0;
+  }
+  .feed {
+    background: rgba(255,255,255,.02);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
   .row {
     display: grid;
-    grid-template-columns: 1fr 1fr 90px 90px;
+    grid-template-columns: 1fr 1fr 96px 88px;
     gap: 12px;
     padding: 14px 18px;
     border-bottom: 1px solid var(--border);
     font-size: 13px;
     align-items: center;
+    transition: all .15s;
   }
+  .row:not(.head):hover { background: rgba(168,85,247,.05); }
   .row:last-child { border-bottom: none; }
   .row.head {
-    background: var(--surface);
-    color: var(--muted);
+    background: rgba(255,255,255,.02);
+    color: var(--text3);
     text-transform: uppercase;
-    letter-spacing: 0.04em;
-    font-size: 11px;
+    letter-spacing: .08em;
+    font-size: 10.5px;
+    font-weight: 600;
   }
-  .addr { font-family: "SF Mono", Consolas, monospace; color: var(--text); }
-  .amount { color: var(--accent); text-align: right; font-variant-numeric: tabular-nums; }
-  .time { color: var(--muted); text-align: right; }
-  .row.new { animation: flash 1.2s ease-out; }
-  @keyframes flash {
-    0% { background: var(--accent-dim); }
-    100% { background: transparent; }
+  .addr { font-family: 'SF Mono', Consolas, monospace; color: var(--text); font-size: 12.5px; }
+  .amount { color: var(--accent4); text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }
+  .time { color: var(--text3); text-align: right; font-size: 12px; }
+  .row.new { animation: flash 1.4s ease-out; }
+  @keyframes flash { 0% { background: rgba(168,85,247,.15); } 100% { background: transparent; } }
+  .empty { padding: 44px; text-align: center; color: var(--text3); font-size: 13px; }
+  .footnote { margin-top: 16px; font-size: 12px; color: var(--text3); line-height: 1.6; }
+  .footnote code {
+    background: rgba(255,255,255,.06); border-radius: 4px; padding: 1px 5px;
+    font-family: 'SF Mono', Consolas, monospace; font-size: 11.5px; color: var(--accent4);
   }
-  .empty { padding: 40px; text-align: center; color: var(--muted); }
-  .footnote { margin-top: 16px; font-size: 12px; color: var(--muted); }
 
-  .section-title {
-    font-size: 13px;
-    color: var(--muted);
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    margin: 40px 0 12px 0;
-  }
   .action-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 12px;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 14px;
   }
   .action-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 16px 18px;
+    background: rgba(255,255,255,.04);
+    border: 1px solid rgba(168,85,247,.18);
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    box-shadow: 0 8px 32px rgba(0,0,0,.3), inset 0 1px 0 rgba(168,85,247,.12);
   }
   .action-card h3 {
-    font-size: 14px;
-    margin: 0 0 4px 0;
+    font-size: 14px; font-weight: 700; margin: 0 0 4px 0; color: var(--text);
   }
   .action-card p {
-    font-size: 12px;
-    color: var(--muted);
-    margin: 0 0 12px 0;
-    line-height: 1.5;
+    font-size: 12px; color: var(--text3); margin: 0 0 14px 0; line-height: 1.5;
   }
   .action-card input, .action-card select {
     width: 100%;
-    background: var(--bg);
-    border: 1px solid var(--border);
+    background: var(--surface);
+    border: 1px solid rgba(255,255,255,.1);
     color: var(--text);
-    border-radius: 6px;
-    padding: 8px 10px;
+    border-radius: var(--radius-sm);
+    padding: 10px 13px;
     font-size: 13px;
     margin-bottom: 8px;
     font-family: inherit;
+    outline: none;
+    transition: all .2s;
   }
-  .action-card input::placeholder { color: #55555c; }
-  .action-btn {
-    width: 100%;
-    background: transparent;
-    border: 1px solid var(--accent);
-    color: var(--accent);
-    border-radius: 6px;
-    padding: 8px 12px;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background 0.15s;
+  .action-card input:focus, .action-card select:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(168,85,247,.18);
   }
-  .action-btn:hover { background: var(--accent-dim); }
-  .action-btn:disabled { opacity: 0.4; cursor: default; }
+  .action-card input::placeholder { color: var(--text3); opacity: .8; }
   .action-result {
     margin-top: 10px;
-    font-family: "SF Mono", Consolas, monospace;
+    font-family: 'SF Mono', Consolas, monospace;
     font-size: 11px;
-    color: var(--muted);
+    color: var(--text3);
     white-space: pre-wrap;
     word-break: break-all;
-    max-height: 140px;
+    max-height: 150px;
     overflow-y: auto;
     display: none;
+    background: rgba(255,255,255,.03);
+    border-radius: 8px;
+    padding: 10px;
   }
   .action-result.show { display: block; }
-  .action-result.ok { color: var(--accent); }
-  .action-result.err { color: #f28b82; }
+  .action-result.ok { color: var(--accent4); }
+  .action-result.err { color: var(--danger); }
+
+  @media (max-width: 640px) {
+    .stats { grid-template-columns: 1fr; }
+    .row { grid-template-columns: 1fr 80px; }
+    .row > div:nth-child(2), .row.head > div:nth-child(2) { display: none; }
+  }
 </style>
 </head>
 <body>
   <div class="wrap">
     <header>
-      <h1>ARIKE<span>.</span> Console</h1>
-      <div class="status"><span class="dot"></span><span id="statusText">connecting…</span></div>
+      <div class="brand">
+        <div class="logo">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 3L20 19H4L12 3Z" fill="#f3e8ff"/>
+          </svg>
+        </div>
+        <h1>ARIKE<span> / console</span></h1>
+      </div>
+      <div class="net-pill" id="statusPill">connecting…</div>
     </header>
+
     <div class="subtitle-row">
-      <p class="subtitle">Live feed of agent-to-agent payments on Arc — no human approves any of these.</p>
-      <button class="simulate-btn" id="simulateBtn">▶ Trigger agent purchase</button>
+      <p class="subtitle">Live feed of agent-to-agent payments on Arc Testnet — no human approves any of these.</p>
+      <button class="btn" id="simulateBtn">Trigger agent purchase</button>
     </div>
 
     <div class="agent-log" id="agentLog"></div>
 
     <div class="stats">
-      <div class="stat"><div class="label">Total settlements</div><div class="value" id="statCount">–</div></div>
-      <div class="stat"><div class="label">Total USDC moved</div><div class="value" id="statTotal">–</div></div>
-      <div class="stat"><div class="label">Unique providers paid</div><div class="value" id="statProviders">–</div></div>
+      <div class="stat"><div class="label">Total Settlements</div><div class="value" id="statCount">–</div></div>
+      <div class="stat"><div class="label">Total USDC Moved</div><div class="value" id="statTotal">–</div></div>
+      <div class="stat"><div class="label">Providers Paid</div><div class="value" id="statProviders">–</div></div>
     </div>
 
     <div class="feed" id="feed">
@@ -255,7 +340,7 @@
           <option value="USDC">USDC</option>
         </select>
         <input id="swapAmount" placeholder="Amount (e.g. 1.00)" value="1.00" />
-        <button class="action-btn" id="swapBtn">Run Swap</button>
+        <button class="btn-sm" id="swapBtn">Run Swap</button>
         <div class="action-result" id="swapResult"></div>
       </div>
 
@@ -265,7 +350,7 @@
         <input id="sendFrom" placeholder="From address (0x...)" />
         <input id="sendTo" placeholder="To address (0x...)" />
         <input id="sendAmount" placeholder="Amount (e.g. 1.00)" value="1.00" />
-        <button class="action-btn" id="sendBtn">Run Send</button>
+        <button class="btn-sm" id="sendBtn">Run Send</button>
         <div class="action-result" id="sendResult"></div>
       </div>
 
@@ -279,18 +364,175 @@
           <option value="Avalanche_Fuji">Avalanche Fuji</option>
         </select>
         <input id="bridgeAmount" placeholder="Amount (e.g. 5.00)" value="5.00" />
-        <button class="action-btn" id="bridgeBtn">Run Bridge</button>
+        <button class="btn-sm" id="bridgeBtn">Run Bridge</button>
         <div class="action-result" id="bridgeResult"></div>
       </div>
 
       <div class="action-card">
         <h3>Unified Balance</h3>
         <p>Check ARIKE's chain-abstracted USDC balance (read-only, no inputs needed).</p>
-        <button class="action-btn" id="balanceBtn">Check Balance</button>
+        <button class="btn-sm" id="balanceBtn">Check Balance</button>
         <div class="action-result" id="balanceResult"></div>
       </div>
     </div>
   </div>
+
+  <script>
+    let simulatedRows = [];
+
+    function rand4() { return Math.random().toString(16).slice(2, 6); }
+
+    const SERVICE_POOL = [
+      { name: "Port Congestion Index", provider: "0xArikeProvider" + rand4(), price: [0.0015, 0.0025] },
+      { name: "FX Rate Oracle", provider: "0xFxOracle" + rand4(), price: [0.0008, 0.0015] },
+      { name: "Weather Risk Feed", provider: "0xWeatherRisk" + rand4(), price: [0.0020, 0.0040] },
+      { name: "Flight Price Feed", provider: "0xFlightFeed" + rand4(), price: [0.0050, 0.0100] },
+    ];
+    const CONSUMER_ADDR = "0xC0nsumerAgent" + rand4();
+
+    function shorten(addr) {
+      if (!addr) return "—";
+      if (addr.length <= 14) return addr;
+      return addr.slice(0, 8) + "…" + addr.slice(-4);
+    }
+
+    function timeAgo(iso) {
+      const diff = Math.max(0, Date.now() - new Date(iso).getTime());
+      const s = Math.floor(diff / 1000);
+      if (s < 60) return s + "s ago";
+      const m = Math.floor(s / 60);
+      if (m < 60) return m + "m ago";
+      return Math.floor(m / 60) + "h ago";
+    }
+
+    function sleep(ms) { return new Promise((r) => setTimeout(r, ms)); }
+
+    async function logLine(text, done) {
+      const log = document.getElementById("agentLog");
+      const line = document.createElement("div");
+      line.className = "line" + (done ? " done" : "");
+      line.textContent = text;
+      log.appendChild(line);
+      log.scrollTop = log.scrollHeight;
+      await sleep(50);
+    }
+
+    async function runSimulation() {
+      const btn = document.getElementById("simulateBtn");
+      btn.disabled = true;
+
+      const log = document.getElementById("agentLog");
+      log.classList.add("active");
+      log.innerHTML = "";
+
+      await logLine("Submitting real transaction to ArikeLedger on Arc Testnet...");
+      try {
+        const res = await fetch("/api/simulate", { method: "POST" });
+        const data = await res.json();
+
+        if (res.ok && data.real) {
+          await logLine(`Paid ${data.amountUsdc} USDC to ${data.provider} via createContractExecutionTransaction...`);
+          await sleep(400);
+          await logLine(`Transaction ${data.transactionId.slice(0, 8)}... state: ${data.state}`);
+          await sleep(400);
+          await logLine(`✓ Real settlement submitted — refreshing feed from Arc Testnet...`, true);
+          await sleep(1500);
+          await refresh();
+          btn.disabled = false;
+          return;
+        }
+
+        if (res.status === 503) {
+          await logLine(`Live demo wallet not configured yet — showing an illustrative run instead.`);
+        } else {
+          await logLine(`Real transaction failed (${data.message || "unknown error"}) — showing an illustrative run instead.`);
+        }
+      } catch (err) {
+        await logLine(`Couldn't reach the backend — showing an illustrative run instead.`);
+      }
+
+      await sleep(400);
+      await runIllustrativeSimulation();
+      btn.disabled = false;
+    }
+
+    async function runIllustrativeSimulation() {
+      const service = SERVICE_POOL[Math.floor(Math.random() * SERVICE_POOL.length)];
+      const price = (service.price[0] + Math.random() * (service.price[1] - service.price[0])).toFixed(6);
+
+      await logLine("Deciding what data is needed for the current goal...");
+      await sleep(500);
+      await logLine(`Searching Circle Agent Marketplace for "${service.name.toLowerCase()}"...`);
+      await sleep(600);
+      await logLine(`Found service: ${service.name} — inspecting payment terms...`);
+      await sleep(500);
+      await logLine(`(Illustrative) would pay ${price} USDC via Nanopayments (x402)...`);
+      await sleep(700);
+      await logLine(`This row is illustrative, not an onchain transaction — see the footnote below.`, true);
+
+      simulatedRows.unshift({
+        consumer: CONSUMER_ADDR,
+        provider: service.provider,
+        amountUsdc: price,
+        timestamp: new Date().toISOString(),
+      });
+
+      render();
+    }
+
+    function render() {
+      const feed = document.getElementById("feed");
+      feed.querySelectorAll(".row:not(.head)").forEach((r) => r.remove());
+
+      const all = [...simulatedRows, ...(window.__fetchedSettlements || [])];
+
+      if (!all.length) {
+        const empty = document.createElement("div");
+        empty.className = "empty";
+        empty.textContent = "No settlements yet — try the Trigger button above, or run the consumer agent locally.";
+        feed.appendChild(empty);
+      }
+
+      let total = 0;
+      const providers = new Set();
+
+      all.forEach((s, i) => {
+        total += parseFloat(s.amountUsdc);
+        providers.add(s.provider);
+
+        const row = document.createElement("div");
+        row.className = "row" + (i === 0 ? " new" : "");
+        row.innerHTML = `
+          <div class="addr">${shorten(s.consumer)}</div>
+          <div class="addr">${shorten(s.provider)}</div>
+          <div class="amount">${parseFloat(s.amountUsdc).toFixed(4)}</div>
+          <div class="time">${timeAgo(s.timestamp)}</div>
+        `;
+        feed.appendChild(row);
+      });
+
+      document.getElementById("statCount").textContent = all.length;
+      document.getElementById("statTotal").textContent = total.toFixed(4);
+      document.getElementById("statProviders").textContent = providers.size;
+    }
+
+    async function refresh() {
+      try {
+        const res = await fetch("/api/settlements");
+        const data = await res.json();
+        document.getElementById("statusPill").textContent = data.live ? "live · Arc Testnet" : "demo mode";
+        window.__fetchedSettlements = data.settlements;
+        render();
+      } catch (err) {
+        document.getElementById("statusPill").textContent = "connection error";
+        console.error(err);
+      }
+    }
+
+    document.getElementById("simulateBtn").addEventListener("click", runSimulation);
+    refresh();
+    setInterval(refresh, 4000);
+  </script>
 
   <script>
     async function runAction(btnId, resultId, fn) {
@@ -355,169 +597,6 @@
     document.getElementById("balanceBtn").addEventListener("click", () =>
       runAction("balanceBtn", "balanceResult", () => fetch("/api/balance").then((r) => r.json()))
     );
-  </script>
-
-  <script>
-    let simulatedRows = [];
-
-    function rand4() {
-      return Math.random().toString(16).slice(2, 6);
-    }
-
-    const SERVICE_POOL = [
-      { name: "Port Congestion Index", provider: "0xArikeProvider" + rand4(), price: [0.0015, 0.0025] },
-      { name: "FX Rate Oracle", provider: "0xFxOracle" + rand4(), price: [0.0008, 0.0015] },
-      { name: "Weather Risk Feed", provider: "0xWeatherRisk" + rand4(), price: [0.0020, 0.0040] },
-      { name: "Flight Price Feed", provider: "0xFlightFeed" + rand4(), price: [0.0050, 0.0100] },
-    ];
-    const CONSUMER_ADDR = "0xC0nsumerAgent" + rand4();
-
-    function shorten(addr) {
-      if (!addr) return "—";
-      if (addr.length <= 14) return addr;
-      return addr.slice(0, 8) + "…" + addr.slice(-4);
-    }
-
-    function timeAgo(iso) {
-      const diff = Math.max(0, Date.now() - new Date(iso).getTime());
-      const s = Math.floor(diff / 1000);
-      if (s < 60) return s + "s ago";
-      const m = Math.floor(s / 60);
-      if (m < 60) return m + "m ago";
-      return Math.floor(m / 60) + "h ago";
-    }
-
-    function sleep(ms) { return new Promise((r) => setTimeout(r, ms)); }
-
-    async function logLine(text, done) {
-      const log = document.getElementById("agentLog");
-      const line = document.createElement("div");
-      line.className = "line" + (done ? " done" : "");
-      line.textContent = text;
-      log.appendChild(line);
-      log.scrollTop = log.scrollHeight;
-      await sleep(50);
-    }
-
-    async function runSimulation() {
-      const btn = document.getElementById("simulateBtn");
-      btn.disabled = true;
-
-      const log = document.getElementById("agentLog");
-      log.classList.add("active");
-      log.innerHTML = "";
-
-      // Try the real thing first: an actual onchain transaction via the
-      // backend, signed by a funded Circle wallet, calling
-      // ArikeLedger.recordSettlement() on Arc Testnet.
-      await logLine("Submitting real transaction to ArikeLedger on Arc Testnet...");
-      try {
-        const res = await fetch("/api/simulate", { method: "POST" });
-        const data = await res.json();
-
-        if (res.ok && data.real) {
-          await logLine(`Paid ${data.amountUsdc} USDC to ${data.provider} via createContractExecutionTransaction...`);
-          await sleep(400);
-          await logLine(`Transaction ${data.transactionId.slice(0, 8)}... state: ${data.state}`);
-          await sleep(400);
-          await logLine(`✓ Real settlement submitted — refreshing feed from Arc Testnet...`, true);
-          await sleep(1500);
-          await refresh(); // pull the confirmed (or pending) tx straight from chain
-          btn.disabled = false;
-          return;
-        }
-
-        if (res.status === 503) {
-          await logLine(`Live demo wallet not configured yet — showing an illustrative run instead.`);
-        } else {
-          await logLine(`Real transaction failed (${data.message || "unknown error"}) — showing an illustrative run instead.`);
-        }
-      } catch (err) {
-        await logLine(`Couldn't reach the backend — showing an illustrative run instead.`);
-      }
-
-      await sleep(400);
-      await runIllustrativeSimulation();
-      btn.disabled = false;
-    }
-
-    async function runIllustrativeSimulation() {
-      const service = SERVICE_POOL[Math.floor(Math.random() * SERVICE_POOL.length)];
-      const price = (service.price[0] + Math.random() * (service.price[1] - service.price[0])).toFixed(6);
-
-      await logLine("Deciding what data is needed for the current goal...");
-      await sleep(500);
-      await logLine(`Searching Circle Agent Marketplace for "${service.name.toLowerCase()}"...`);
-      await sleep(600);
-      await logLine(`Found service: ${service.name} — inspecting payment terms...`);
-      await sleep(500);
-      await logLine(`(Illustrative) would pay ${price} USDC via Nanopayments (x402)...`);
-      await sleep(700);
-      await logLine(`This row is illustrative, not an onchain transaction — see the footnote below.`, true);
-
-      simulatedRows.unshift({
-        consumer: CONSUMER_ADDR,
-        provider: service.provider,
-        amountUsdc: price,
-        timestamp: new Date().toISOString(),
-      });
-
-      render();
-    }
-
-    function render() {
-      const feed = document.getElementById("feed");
-      feed.querySelectorAll(".row:not(.head)").forEach((r) => r.remove());
-
-      const all = [...simulatedRows, ...(window.__fetchedSettlements || [])];
-
-      if (!all.length) {
-        const empty = document.createElement("div");
-        empty.className = "empty";
-        empty.textContent = "No settlements yet — try the Simulate button above, or run the consumer agent locally.";
-        feed.appendChild(empty);
-      }
-
-      let total = 0;
-      const providers = new Set();
-
-      all.forEach((s, i) => {
-        total += parseFloat(s.amountUsdc);
-        providers.add(s.provider);
-
-        const row = document.createElement("div");
-        row.className = "row" + (i === 0 ? " new" : "");
-        row.innerHTML = `
-          <div class="addr">${shorten(s.consumer)}</div>
-          <div class="addr">${shorten(s.provider)}</div>
-          <div class="amount">${parseFloat(s.amountUsdc).toFixed(4)}</div>
-          <div class="time">${timeAgo(s.timestamp)}</div>
-        `;
-        feed.appendChild(row);
-      });
-
-      document.getElementById("statCount").textContent = all.length;
-      document.getElementById("statTotal").textContent = total.toFixed(4);
-      document.getElementById("statProviders").textContent = providers.size;
-    }
-
-    async function refresh() {
-      try {
-        const res = await fetch("/api/settlements");
-        const data = await res.json();
-        document.getElementById("statusText").textContent = data.live ? "live · reading Arc Testnet" : "demo mode · mock data";
-        window.__fetchedSettlements = data.settlements;
-        render();
-      } catch (err) {
-        document.getElementById("statusText").textContent = "connection error";
-        console.error(err);
-      }
-    }
-
-    document.getElementById("simulateBtn").addEventListener("click", runSimulation);
-
-    refresh();
-    setInterval(refresh, 4000);
   </script>
 </body>
 </html>
