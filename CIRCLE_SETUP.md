@@ -152,28 +152,50 @@ illustrative (clearly-labeled, non-onchain) animation instead of erroring.
 
 ---
 
-## 3c. Circle login (email in, wallet found-or-created)
+## 3c. Real Circle email-OTP login
 
-The Console's "Log in" button doesn't use MetaMask or a password — it uses
-the same pattern NAN does: enter an email, the backend finds or creates a
-Developer-Controlled Wallet tied to it (via `refId`), and that address is
-what every panel acts through.
+The Console's "Log in" sends an actual one-time code via email using
+Circle's **User-Controlled Wallets** — a different product from the
+Developer-Controlled wallet everything else in ARIKE uses. Circle sends
+and verifies the code, the user sets nothing (no PIN required for this
+flow), and Circle's own hosted UI handles code entry so no raw OTP ever
+touches ARIKE's code.
 
-Requires one more variable, using the Wallet Set ID printed by
-`npm run create:wallet` (you already have this from earlier — look for
-"Wallet Set ID:" in that command's output):
+Docs: [Create User Wallets with Email OTP](https://developers.circle.com/wallets/user-controlled/create-user-wallets-with-email)
 
-```
-ARIKE_WALLET_SET_ID=<your wallet set id>
-```
+**One-time setup, in the Circle Console:**
 
-Set it in **Vercel → Settings → Environment Variables**, alongside
-`CIRCLE_API_KEY` and `CIRCLE_ENTITY_SECRET` (already set). Each new email
-that logs in creates one new wallet under this set — free, instant, no
-faucet needed for login itself (though the wallet won't have funds until
-you send it some).
+1. Get a free [Mailtrap](https://mailtrap.io/) account, enable **Email
+   Sandbox**, and copy its SMTP credentials (Host, Port, Username, Password)
+   from **Transactional → Sandboxes → your sandbox → SMTP Settings**.
+2. In [Circle Console](https://console.circle.com): **Wallets → User
+   Controlled → Configurator → Authentication Methods → Email**.
+3. Enter a From address (e.g. `no-reply@example.com`) and paste in the
+   Mailtrap SMTP values.
+4. On the same Configurator page, copy your **App ID**.
+5. Add it as an env var — locally in `.env`, and in **Vercel → Settings →
+   Environment Variables**:
+   ```
+   ARIKE_CIRCLE_APP_ID=<your app id>
+   ```
 
+**How the flow works once configured:**
+1. Enter email → ARIKE requests an OTP (`POST /v1/w3s/users/email/token`)
+2. Click "Verify email code" → Circle's own hosted popup opens; user enters
+   the code from their inbox (Mailtrap's sandbox inbox during testing —
+   real SMTP delivers to actual inboxes in production)
+3. On success, ARIKE initializes the user and — if they're new — creates
+   their wallet via a Circle-hosted approval popup (`challengeId` +
+   `sdk.execute()`)
+4. ARIKE reads back the wallet address and uses it for every panel, same
+   as before
 
+**Architecture note:** because the Console is plain static HTML (not
+React/Next), Circle's browser SDK (`@circle-fin/w3s-pw-web-sdk`) is bundled
+separately via `scripts/bundle-otp.js` (esbuild) into `otp-bundle.js`,
+loaded as a plain `<script>` tag. This runs automatically as part of
+`npm run build`, which Vercel invokes before every deploy — no manual step
+needed once it's set up.
 
 ## 4. CCTP V2 — let a provider on another chain get paid in USDC on Arc
 
