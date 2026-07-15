@@ -75,6 +75,13 @@ async function main() {
 }
 
 main().catch((err) => {
-  console.error("Deployment failed:", err);
+  console.error("Deployment failed:", err.message);
+  // Circle's SDK error often carries the real validation detail in
+  // non-enumerable properties that a plain console.error/JSON.stringify
+  // misses — dump everything so we can see the actual rejected field.
+  console.error("Full error detail:", JSON.stringify(err, Object.getOwnPropertyNames(err), 2));
+  if (err.response) {
+    console.error("Response data:", JSON.stringify(err.response.data ?? err.response, null, 2));
+  }
   process.exit(1);
 });
