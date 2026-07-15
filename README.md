@@ -31,7 +31,8 @@ Built for the [Encode Build on Arc hackathon](https://www.encodeclub.com/program
    npm install
    ```
 
-3. Set up your real Circle agent wallet (once, per Circle's docs):
+3. Set up your real Circle agent wallet (once, per Circle's docs — see
+   `CIRCLE_SETUP.md` for the full walkthrough):
    ```
    npm install -g @circle-fin/cli
    circle wallet login you@example.com --testnet
@@ -53,10 +54,26 @@ Real mode (once your wallet + gateway balance are set up):
 npm run consumer
 ```
 
-Run ARIKE's own provider service (separate terminal):
+ARIKE's own provider service (separate terminal):
 ```
 npm run provider
 ```
+
+ARIKE Console — live dashboard of the agent-to-agent transaction feed (separate terminal):
+```
+npm run console
+```
+Open http://localhost:4022. Runs in mock/demo mode until `ARIKE_LEDGER_ADDRESS`
+is set (after `npm run deploy:contracts`), then reads live settlements from Arc.
+
+## Deploy the onchain contracts
+
+```
+npm run compile          # compiles ArikeDirectory.sol + ArikeLedger.sol with solc
+npm run deploy:contracts # deploys both to Arc Testnet via Circle Contracts
+```
+Requires `CIRCLE_API_KEY`, `CIRCLE_ENTITY_SECRET`, and `ARIKE_DEPLOYER_WALLET_ID`
+in `.env` — see `CIRCLE_SETUP.md` for how to get these.
 
 ## Architecture
 
@@ -76,6 +93,20 @@ npm run provider
                      ▼            ▼            ▼
               Port Congestion  FX Oracle   Weather Risk
               Index (ARIKE)    (3rd party) (3rd party)
+                     │
+                     ▼ recordSettlement()
+              ┌─────────────────┐        ┌────────────────┐
+              │  ArikeLedger    │───────▶│  ARIKE Console  │
+              │  (Arc Testnet)  │  reads │  (live dashboard)│
+              └─────────────────┘        └────────────────┘
+
+  ArikeDirectory (Arc Testnet) — onchain service registry, providers list here too
+
+  CCTP Bridge (src/lib/bridge.ts) — consumer/provider agents on Base, Ethereum,
+  or Avalanche testnets can consolidate USDC onto Arc before/after transacting
+
+  Paymaster (src/lib/paymaster.ts) — Base-side only: lets a provider agent's
+  smart account pay gas in USDC instead of ETH when it isn't operating on Arc directly
 ```
 
 Every payment settles via Circle Gateway / Nanopayments (x402) on top of Arc.
@@ -83,14 +114,18 @@ Wallets are Circle Agent Wallets — no human key management on either side.
 
 ## Circle tools used
 
-| Tool | Role in ARIKE |
-|---|---|
-| Agent Wallets | Every agent (consumer + provider) holds one, no human custody |
-| Nanopayments / x402 | The actual per-call payment rail between agents |
-| Gateway | Unified USDC balance the consumer agent draws from |
-| Circle Agent Marketplace | Discovery layer — where ARIKE lists its own service and finds others |
-| CCTP V2 | (planned) lets a provider on another chain still get paid natively in USDC on Arc |
-| Paymaster | (planned) removes any remaining native-gas friction for either agent |
+| Tool | Role in ARIKE | Where |
+|---|---|---|
+| Agent Wallets | Every agent (consumer + provider) holds one, no human custody | Circle CLI, set up per `CIRCLE_SETUP.md` |
+| Nanopayments / x402 | The actual per-call payment rail between agents | `src/consumer/agent.ts`, `src/provider/server.ts` |
+| Gateway | Unified USDC balance the consumer agent draws from | `src/lib/circle-tools.ts` |
+| Circle Agent Marketplace | Discovery layer — where ARIKE lists its own service and finds others | `circle services search/inspect/pay` |
+| Circle Contracts | Onchain service directory + settlement ledger | `contracts/*.sol`, `scripts/deploy-contracts.js` |
+| CCTP V2 | Lets an agent on another chain consolidate USDC onto Arc | `src/lib/bridge.ts` |
+| Paymaster | Base-side gas-in-USDC for provider agents not living on Arc | `src/lib/paymaster.ts` |
+| StableFX | Institutional KYB/AML-gated — mentioned in pitch as roadmap, not built | — |
+
+See `CIRCLE_SETUP.md` for the complete, verified setup walkthrough for every tool above.
 
 ## TODO before final submission (Aug 9)
 
@@ -98,6 +133,6 @@ Wallets are Circle Agent Wallets — no human key management on either side.
       accepts any non-empty `X-PAYMENT` header — fine for demo, not for real use)
 - [ ] Deploy provider service publicly (tunnel or hosted) and register on
       the Circle Agent Marketplace
-- [ ] Add CCTP path so a provider on another chain can still get paid in USDC on Arc
-- [ ] ARIKE Console — small dashboard visualizing the live transaction feed
+- [ ] Wire consumer/provider agents to actually call `ArikeLedger.recordSettlement()`
+      after each Nanopayment clears, so the Console shows real data
 - [ ] Record 3-minute demo video
