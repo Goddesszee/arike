@@ -12,6 +12,7 @@
  */
 import "dotenv/config";
 import fs from "node:fs";
+import crypto from "node:crypto";
 import { initiateDeveloperControlledWalletsClient } from "@circle-fin/developer-controlled-wallets";
 import { initiateSmartContractPlatformClient } from "@circle-fin/smart-contract-platform";
 
@@ -56,6 +57,7 @@ async function deploy(name, constructorParameters = []) {
     bytecode,
     constructorParameters,
     fee: { type: "level", config: { feeLevel: "MEDIUM" } },
+    idempotencyKey: crypto.randomUUID(),
   });
 
   console.log(`${name} deploy submitted:`, response.data);
