@@ -18,7 +18,7 @@ export interface SendParams {
   fromAddress: `0x${string}`; // Circle-managed wallet's onchain address
   toAddress: `0x${string}`;
   amount: string; // e.g. "10.00"
-  token?: "USDC" | "USDT" | "NATIVE";
+  token?: "USDC" | "EURC" | "USDT" | "NATIVE";
   // Literal union, not plain `string` — the SDK's chain identifier type is a
   // template-literal union and rejects a widened `string`, even for values
   // that match at runtime.
