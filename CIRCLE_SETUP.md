@@ -188,6 +188,35 @@ npm run try:swap -- --address=0xYourWalletAddress --amount=1.00 --from=USDC --to
 
 ---
 
+## 4c. Send — direct wallet-to-wallet transfer
+
+Wired into `src/lib/send.ts` via the full App Kit's Send capability
+(`@circle-fin/app-kit`). No Kit Key needed for this one — only Swap
+requires it.
+
+Try it:
+```
+npm run try:send -- --from=0xYourWallet --to=0xRecipient --amount=1.00
+```
+
+---
+
+## 4d. Unified Balance — one balance, spendable on any chain
+
+Wired into `src/lib/unifiedBalance.ts`. Deposit USDC from any supported
+chain into a single Gateway balance, then spend (mint) it on whichever
+chain an agent needs it — no manual per-transfer bridging. This is the
+same balance Nanopayments draw from.
+
+Try it:
+```
+npm run try:balance -- deposit --chain=Base_Sepolia --address=0xYourWallet --amount=5.00
+npm run try:balance -- spend --to=Arc_Testnet --address=0xYourWallet --amount=2.00
+npm run try:balance -- check
+```
+
+---
+
 ## 5. Paymaster — remove native-gas friction
 
 Circle Paymaster support was expanded to Arc Testnet, letting either agent
@@ -228,7 +257,9 @@ circle skill install --tool claude-code
 | Nanopayments (x402) | Step 2 — already scaffolded in `src/consumer/agent.ts` |
 | Contracts | Step 3 — `ArikeDirectory` + `ArikeLedger` ready to deploy |
 | Gateway | Step 2 — same balance Nanopayments draw from |
-| CCTP V2 | Step 4 — wired in `src/lib/bridge.ts`, try with `npm run try:bridge` |
+| CCTP V2 (Bridge) | Step 4 — wired in `src/lib/bridge.ts`, try with `npm run try:bridge` |
 | Swap (App Kit) | Step 4b — wired in `src/lib/swap.ts`, try with `npm run try:swap` |
+| Send (App Kit) | Step 4c — wired in `src/lib/send.ts`, try with `npm run try:send` |
+| Unified Balance (App Kit) | Step 4d — wired in `src/lib/unifiedBalance.ts`, try with `npm run try:balance` |
 | Paymaster | Step 5 — planned, not yet wired |
 | StableFX | Institutional-gated — pitch only, not built |
