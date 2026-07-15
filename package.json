@@ -10,7 +10,8 @@
     "consumer:mock": "tsx src/consumer/agent.ts --mock",
     "console": "tsx src/console/server.ts",
     "compile": "node scripts/compile.js",
-    "deploy:contracts": "node scripts/deploy-contracts.js"
+    "deploy:contracts": "node scripts/deploy-contracts.js",
+    "create:wallet": "node scripts/create-wallet.js"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.65.0",
