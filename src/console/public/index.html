@@ -55,7 +55,47 @@
     70% { box-shadow: 0 0 0 8px rgba(110,231,183,0); }
     100% { box-shadow: 0 0 0 0 rgba(110,231,183,0); }
   }
-  .subtitle { color: var(--muted); margin: 0 0 32px 0; font-size: 15px; }
+  .subtitle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 32px;
+    flex-wrap: wrap;
+  }
+  .subtitle { color: var(--muted); margin: 0; font-size: 15px; }
+
+  .simulate-btn {
+    background: var(--accent);
+    color: #06120d;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 18px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: opacity 0.15s;
+  }
+  .simulate-btn:hover { opacity: 0.88; }
+  .simulate-btn:disabled { opacity: 0.5; cursor: default; }
+
+  .agent-log {
+    display: none;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 18px;
+    margin-bottom: 24px;
+    font-family: "SF Mono", Consolas, monospace;
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.9;
+  }
+  .agent-log.active { display: block; }
+  .agent-log .line { opacity: 0; animation: appear 0.3s forwards; }
+  @keyframes appear { to { opacity: 1; } }
+  .agent-log .done { color: var(--accent); }
 
   .stats {
     display: grid;
@@ -99,6 +139,7 @@
     100% { background: transparent; }
   }
   .empty { padding: 40px; text-align: center; color: var(--muted); }
+  .footnote { margin-top: 16px; font-size: 12px; color: var(--muted); }
 </style>
 </head>
 <body>
@@ -107,7 +148,12 @@
       <h1>ARIKE<span>.</span> Console</h1>
       <div class="status"><span class="dot"></span><span id="statusText">connecting…</span></div>
     </header>
-    <p class="subtitle">Live feed of agent-to-agent payments on Arc — no human approves any of these.</p>
+    <div class="subtitle-row">
+      <p class="subtitle">Live feed of agent-to-agent payments on Arc — no human approves any of these.</p>
+      <button class="simulate-btn" id="simulateBtn">▶ Simulate agent purchase</button>
+    </div>
+
+    <div class="agent-log" id="agentLog"></div>
 
     <div class="stats">
       <div class="stat"><div class="label">Total settlements</div><div class="value" id="statCount">–</div></div>
@@ -123,10 +169,23 @@
         <div style="text-align:right">When</div>
       </div>
     </div>
+    <p class="footnote">"Simulate" runs the same decide → search → pay logic as <code>src/consumer/agent.ts</code> against sample services, entirely in your browser — it doesn't move real USDC. Run the actual agent locally against your funded wallet for a real settlement.</p>
   </div>
 
   <script>
-    let knownCount = 0;
+    let simulatedRows = [];
+
+    function rand4() {
+      return Math.random().toString(16).slice(2, 6);
+    }
+
+    const SERVICE_POOL = [
+      { name: "Port Congestion Index", provider: "0xArikeProvider" + rand4(), price: [0.0015, 0.0025] },
+      { name: "FX Rate Oracle", provider: "0xFxOracle" + rand4(), price: [0.0008, 0.0015] },
+      { name: "Weather Risk Feed", provider: "0xWeatherRisk" + rand4(), price: [0.0020, 0.0040] },
+      { name: "Flight Price Feed", provider: "0xFlightFeed" + rand4(), price: [0.0050, 0.0100] },
+    ];
+    const CONSUMER_ADDR = "0xC0nsumerAgent" + rand4();
 
     function shorten(addr) {
       if (!addr) return "—";
@@ -143,49 +202,100 @@
       return Math.floor(m / 60) + "h ago";
     }
 
+    function sleep(ms) { return new Promise((r) => setTimeout(r, ms)); }
+
+    async function logLine(text, done) {
+      const log = document.getElementById("agentLog");
+      const line = document.createElement("div");
+      line.className = "line" + (done ? " done" : "");
+      line.textContent = text;
+      log.appendChild(line);
+      log.scrollTop = log.scrollHeight;
+      await sleep(50);
+    }
+
+    async function runSimulation() {
+      const btn = document.getElementById("simulateBtn");
+      btn.disabled = true;
+
+      const log = document.getElementById("agentLog");
+      log.classList.add("active");
+      log.innerHTML = "";
+
+      const service = SERVICE_POOL[Math.floor(Math.random() * SERVICE_POOL.length)];
+      const price = (service.price[0] + Math.random() * (service.price[1] - service.price[0])).toFixed(6);
+
+      await logLine("Deciding what data is needed for the current goal...");
+      await sleep(500);
+      await logLine(`Searching Circle Agent Marketplace for "${service.name.toLowerCase()}"...`);
+      await sleep(600);
+      await logLine(`Found service: ${service.name} — inspecting payment terms...`);
+      await sleep(500);
+      await logLine(`Paying ${price} USDC via Nanopayments (x402)...`);
+      await sleep(700);
+      await logLine(`✓ Settlement recorded on Arc — no human approved this payment.`, true);
+
+      simulatedRows.unshift({
+        consumer: CONSUMER_ADDR,
+        provider: service.provider,
+        amountUsdc: price,
+        timestamp: new Date().toISOString(),
+      });
+
+      render();
+      btn.disabled = false;
+    }
+
+    function render() {
+      const feed = document.getElementById("feed");
+      feed.querySelectorAll(".row:not(.head)").forEach((r) => r.remove());
+
+      const all = [...simulatedRows, ...(window.__fetchedSettlements || [])];
+
+      if (!all.length) {
+        const empty = document.createElement("div");
+        empty.className = "empty";
+        empty.textContent = "No settlements yet — try the Simulate button above, or run the consumer agent locally.";
+        feed.appendChild(empty);
+      }
+
+      let total = 0;
+      const providers = new Set();
+
+      all.forEach((s, i) => {
+        total += parseFloat(s.amountUsdc);
+        providers.add(s.provider);
+
+        const row = document.createElement("div");
+        row.className = "row" + (i === 0 ? " new" : "");
+        row.innerHTML = `
+          <div class="addr">${shorten(s.consumer)}</div>
+          <div class="addr">${shorten(s.provider)}</div>
+          <div class="amount">${parseFloat(s.amountUsdc).toFixed(4)}</div>
+          <div class="time">${timeAgo(s.timestamp)}</div>
+        `;
+        feed.appendChild(row);
+      });
+
+      document.getElementById("statCount").textContent = all.length;
+      document.getElementById("statTotal").textContent = total.toFixed(4);
+      document.getElementById("statProviders").textContent = providers.size;
+    }
+
     async function refresh() {
       try {
         const res = await fetch("/api/settlements");
         const data = await res.json();
         document.getElementById("statusText").textContent = data.live ? "live · reading Arc Testnet" : "demo mode · mock data";
-
-        const feed = document.getElementById("feed");
-        feed.querySelectorAll(".row:not(.head)").forEach((r) => r.remove());
-
-        if (!data.settlements.length) {
-          const empty = document.createElement("div");
-          empty.className = "empty";
-          empty.textContent = "No settlements yet — run the consumer agent to see the feed populate.";
-          feed.appendChild(empty);
-        }
-
-        let total = 0;
-        const providers = new Set();
-
-        data.settlements.forEach((s, i) => {
-          total += parseFloat(s.amountUsdc);
-          providers.add(s.provider);
-
-          const row = document.createElement("div");
-          row.className = "row" + (i === 0 && data.settlements.length > knownCount ? " new" : "");
-          row.innerHTML = `
-            <div class="addr">${shorten(s.consumer)}</div>
-            <div class="addr">${shorten(s.provider)}</div>
-            <div class="amount">${parseFloat(s.amountUsdc).toFixed(4)}</div>
-            <div class="time">${timeAgo(s.timestamp)}</div>
-          `;
-          feed.appendChild(row);
-        });
-
-        document.getElementById("statCount").textContent = data.settlements.length;
-        document.getElementById("statTotal").textContent = total.toFixed(4);
-        document.getElementById("statProviders").textContent = providers.size;
-        knownCount = data.settlements.length;
+        window.__fetchedSettlements = data.settlements;
+        render();
       } catch (err) {
         document.getElementById("statusText").textContent = "connection error";
         console.error(err);
       }
     }
+
+    document.getElementById("simulateBtn").addEventListener("click", runSimulation);
 
     refresh();
     setInterval(refresh, 4000);
