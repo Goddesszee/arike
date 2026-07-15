@@ -150,6 +150,29 @@ never affects your own deploy/dev wallet.
 Until all four vars are set, the button gracefully falls back to an
 illustrative (clearly-labeled, non-onchain) animation instead of erroring.
 
+---
+
+## 3c. Circle login (email in, wallet found-or-created)
+
+The Console's "Log in" button doesn't use MetaMask or a password — it uses
+the same pattern NAN does: enter an email, the backend finds or creates a
+Developer-Controlled Wallet tied to it (via `refId`), and that address is
+what every panel acts through.
+
+Requires one more variable, using the Wallet Set ID printed by
+`npm run create:wallet` (you already have this from earlier — look for
+"Wallet Set ID:" in that command's output):
+
+```
+ARIKE_WALLET_SET_ID=<your wallet set id>
+```
+
+Set it in **Vercel → Settings → Environment Variables**, alongside
+`CIRCLE_API_KEY` and `CIRCLE_ENTITY_SECRET` (already set). Each new email
+that logs in creates one new wallet under this set — free, instant, no
+faucet needed for login itself (though the wallet won't have funds until
+you send it some).
+
 
 
 ## 4. CCTP V2 — let a provider on another chain get paid in USDC on Arc
