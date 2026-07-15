@@ -11,6 +11,7 @@
     "console": "tsx src/console/server.ts",
     "compile": "node scripts/compile.js",
     "deploy:contracts": "node scripts/deploy-contracts.js",
+    "debug:deploy": "node scripts/debug-deploy-raw.js",
     "create:wallet": "node scripts/create-wallet.js"
   },
   "dependencies": {
