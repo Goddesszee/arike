@@ -42,6 +42,7 @@ async function main() {
   if (!wallet) throw new Error("Wallet creation failed: no wallet returned");
 
   console.log("\n--- Save these ---");
+  console.log(`Wallet Set ID:  ${walletSet.id}`);
   console.log(`Wallet ID:      ${wallet.id}`);
   console.log(`Wallet Address: ${wallet.address}`);
   console.log(`Blockchain:     ${wallet.blockchain}`);
@@ -49,6 +50,7 @@ async function main() {
   console.log(`1. Fund it: go to faucet.circle.com, select Arc Testnet, paste ${wallet.address}`);
   console.log(`2. Add to .env: ARIKE_DEPLOYER_WALLET_ID=${wallet.id}`);
   console.log(`3. Add to Vercel env vars: ARIKE_DEMO_WALLET_ID=${wallet.id}`);
+  console.log(`4. Add to Vercel env vars: ARIKE_WALLET_SET_ID=${walletSet.id} — enables the "Log in" flow on the Console (creates a wallet per email under this set)`);
 }
 
 main().catch((err) => {
