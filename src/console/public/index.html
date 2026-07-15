@@ -150,7 +150,7 @@
     </header>
     <div class="subtitle-row">
       <p class="subtitle">Live feed of agent-to-agent payments on Arc — no human approves any of these.</p>
-      <button class="simulate-btn" id="simulateBtn">▶ Simulate agent purchase</button>
+      <button class="simulate-btn" id="simulateBtn">▶ Trigger agent purchase</button>
     </div>
 
     <div class="agent-log" id="agentLog"></div>
@@ -169,7 +169,7 @@
         <div style="text-align:right">When</div>
       </div>
     </div>
-    <p class="footnote">"Simulate" runs the same decide → search → pay logic as <code>src/consumer/agent.ts</code> against sample services, entirely in your browser — it doesn't move real USDC. Run the actual agent locally against your funded wallet for a real settlement.</p>
+    <p class="footnote">"Trigger agent purchase" calls a real backend endpoint that submits an actual transaction to <code>ArikeLedger.recordSettlement()</code> on Arc Testnet, paid in testnet USDC — a real onchain action, not a fake row, once the demo wallet is configured (see <code>CIRCLE_SETUP.md</code>). If that wallet isn't set up yet, it falls back to an illustrative run and says so explicitly.</p>
   </div>
 
   <script>
@@ -222,6 +222,41 @@
       log.classList.add("active");
       log.innerHTML = "";
 
+      // Try the real thing first: an actual onchain transaction via the
+      // backend, signed by a funded Circle wallet, calling
+      // ArikeLedger.recordSettlement() on Arc Testnet.
+      await logLine("Submitting real transaction to ArikeLedger on Arc Testnet...");
+      try {
+        const res = await fetch("/api/simulate", { method: "POST" });
+        const data = await res.json();
+
+        if (res.ok && data.real) {
+          await logLine(`Paid ${data.amountUsdc} USDC to ${data.provider} via createContractExecutionTransaction...`);
+          await sleep(400);
+          await logLine(`Transaction ${data.transactionId.slice(0, 8)}... state: ${data.state}`);
+          await sleep(400);
+          await logLine(`✓ Real settlement submitted — refreshing feed from Arc Testnet...`, true);
+          await sleep(1500);
+          await refresh(); // pull the confirmed (or pending) tx straight from chain
+          btn.disabled = false;
+          return;
+        }
+
+        if (res.status === 503) {
+          await logLine(`Live demo wallet not configured yet — showing an illustrative run instead.`);
+        } else {
+          await logLine(`Real transaction failed (${data.message || "unknown error"}) — showing an illustrative run instead.`);
+        }
+      } catch (err) {
+        await logLine(`Couldn't reach the backend — showing an illustrative run instead.`);
+      }
+
+      await sleep(400);
+      await runIllustrativeSimulation();
+      btn.disabled = false;
+    }
+
+    async function runIllustrativeSimulation() {
       const service = SERVICE_POOL[Math.floor(Math.random() * SERVICE_POOL.length)];
       const price = (service.price[0] + Math.random() * (service.price[1] - service.price[0])).toFixed(6);
 
@@ -231,9 +266,9 @@
       await sleep(600);
       await logLine(`Found service: ${service.name} — inspecting payment terms...`);
       await sleep(500);
-      await logLine(`Paying ${price} USDC via Nanopayments (x402)...`);
+      await logLine(`(Illustrative) would pay ${price} USDC via Nanopayments (x402)...`);
       await sleep(700);
-      await logLine(`✓ Settlement recorded on Arc — no human approved this payment.`, true);
+      await logLine(`This row is illustrative, not an onchain transaction — see the footnote below.`, true);
 
       simulatedRows.unshift({
         consumer: CONSUMER_ADDR,
@@ -243,7 +278,6 @@
       });
 
       render();
-      btn.disabled = false;
     }
 
     function render() {
