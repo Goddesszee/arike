@@ -382,6 +382,18 @@
 
   .swap-submit-btn { width: 100%; }
 
+  .send-address-input {
+    width: 100%;
+    background: transparent !important;
+    border: none !important;
+    color: var(--text) !important;
+    font-family: 'SF Mono', Consolas, monospace !important;
+    font-size: 13px !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+  }
+  .send-address-input::placeholder { color: var(--text3); }
+
   .action-result {
     margin-top: 10px;
     font-family: 'SF Mono', Consolas, monospace;
@@ -515,22 +527,26 @@
         </div>
       </div>
 
-      <div class="action-card">        <h3>Send</h3>
+      <div class="action-card">
+        <h3>Send</h3>
         <p>Direct wallet-to-wallet USDC transfer on Arc Testnet.</p>
         <div id="sendLocked" class="locked-note">Log in above to try this</div>
-        <div id="sendForm" style="display:none">
-          <div class="field">
-            <div class="flbl">To address</div>
-            <input id="sendTo" placeholder="0x..." />
-          </div>
-          <div class="field">
-            <div class="flbl">Amount <span class="bal-hint" id="sendBalHint"></span></div>
-            <div class="amt-row">
-              <input id="sendAmount" placeholder="0.00" value="1.00" />
-              <button class="max-btn" id="sendMaxBtn">MAX</button>
+        <div id="sendForm" style="display:none" class="swap-widget">
+          <div class="swap-panel">
+            <div class="swap-panel-head">
+              <span>Amount</span>
+              <span class="swap-bal">Bal: <span id="sendBal">–</span> <button class="max-link" id="sendMaxBtn">MAX</button></span>
+            </div>
+            <div class="swap-panel-row">
+              <button class="token-select" type="button" disabled>💲 USDC</button>
+              <input id="sendAmount" class="swap-big-input" placeholder="0" value="" />
             </div>
           </div>
-          <button class="btn-sm" id="sendBtn">Run Send</button>
+          <div class="swap-panel">
+            <div class="swap-panel-head"><span>To</span></div>
+            <input id="sendTo" class="send-address-input" placeholder="0x..." />
+          </div>
+          <button class="btn swap-submit-btn" id="sendBtn">Send USDC</button>
           <div class="action-result" id="sendResult"></div>
         </div>
       </div>
@@ -690,21 +706,40 @@
       }
     });
 
+    let cachedUsdcBalance = null;
+
     async function fetchBalanceHint() {
       try {
         const res = await fetch('/api/balance');
         const data = await res.json();
-        const hint = data.ok ? 'balance loaded' : '';
-        document.getElementById('swapBalHint').textContent = hint;
-        document.getElementById('sendBalHint').textContent = hint;
-      } catch (e) { /* leave hints blank */ }
+        if (data.ok && data.result) {
+          cachedUsdcBalance = data.result.totalConfirmedBalance;
+        }
+      } catch (e) { /* leave blank */ }
+      applyBalanceDisplay();
+    }
+
+    function applyBalanceDisplay() {
+      const usdcText = cachedUsdcBalance !== null ? cachedUsdcBalance : '–';
+      document.getElementById('sendBal').textContent = usdcText;
+      const sellIsUsdc = swapDirection === 'USDC_TO_EURC';
+      document.getElementById('swapSellBal').textContent = sellIsUsdc ? usdcText : 'n/a';
+      document.getElementById('swapBuyBal').textContent = sellIsUsdc ? 'n/a' : usdcText;
     }
 
     document.getElementById('swapMaxBtn').addEventListener('click', () => {
-      alert('Check the Unified Balance panel below for your exact spendable amount, then enter it here.');
+      if (swapDirection === 'USDC_TO_EURC' && cachedUsdcBalance !== null) {
+        document.getElementById('swapAmount').value = cachedUsdcBalance;
+      } else {
+        alert("This demo's balance check only queries USDC (Unified Balance is token-specific) — check Circle Console for your exact EURC balance.");
+      }
     });
     document.getElementById('sendMaxBtn').addEventListener('click', () => {
-      alert('Check the Unified Balance panel below for your exact spendable amount, then enter it here.');
+      if (cachedUsdcBalance !== null) {
+        document.getElementById('sendAmount').value = cachedUsdcBalance;
+      } else {
+        alert('Balance not loaded yet — try the Unified Balance panel below first.');
+      }
     });
 
     /* Swap: flip Sell/Buy tokens */
@@ -729,6 +764,7 @@
     document.getElementById('swapFlipBtn').addEventListener('click', () => {
       swapDirection = swapDirection === 'USDC_TO_EURC' ? 'EURC_TO_USDC' : 'USDC_TO_EURC';
       updateSwapLabels();
+      applyBalanceDisplay();
       document.getElementById('swapOutEstimate').textContent = '–';
       document.getElementById('swapRateText').textContent = 'Estimate appears after you enter an amount';
     });
