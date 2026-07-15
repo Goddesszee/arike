@@ -1,0 +1,180 @@
+# ARIKE — Circle Setup Walkthrough
+
+Everything below runs on **your machine** (Windows, per your setup), not in any
+sandbox — several steps need your email inbox for OTP verification, which
+only you can complete.
+
+Verified against Circle's docs, July 2026.
+
+---
+
+## 0. Prerequisites
+
+- Node.js v20.18.2+
+- A Circle account (console.circle.com)
+
+```powershell
+npm install -g @circle-fin/cli
+```
+
+---
+
+## 1. Agent Wallets — authenticate + create your wallet
+
+```powershell
+circle wallet login you@example.com --testnet
+```
+
+- First run prompts you to accept Circle's Terms of Use, then sends a one-time
+  password to your email.
+- Agent wallets are created automatically on all supported chains once you
+  authenticate.
+- Sessions expire after 7 days; testnet and mainnet sessions are stored
+  separately.
+
+**If you want to script this instead of typing interactively** (useful for
+CI or letting an agent do it):
+```powershell
+circle wallet login you@example.com --init
+# returns a request-id, stored at ~/.circle/login-requests/<id>.json (expires in 10 min)
+circle wallet login --request <request-id> --otp <code-from-email>
+```
+
+Get your wallet address:
+```powershell
+circle wallet list --type agent --chain BASE
+```
+
+Fund it — on Arc Testnet specifically, omit `--method`/`--amount` for free faucet USDC:
+```powershell
+circle wallet fund --address 0xYourWalletAddress --chain BASE
+```
+
+Check balance:
+```powershell
+circle wallet balance --address 0xYourWalletAddress --chain BASE
+```
+
+---
+
+## 2. Nanopayments / Gateway — deposit + pay for services
+
+Deposit into your Gateway balance (this is what Nanopayments draw from):
+```powershell
+circle gateway deposit --amount 5 --address 0xYourWalletAddress --chain BASE --method direct
+```
+
+Discover services on the Circle Agent Marketplace:
+```powershell
+circle services search "weather"
+circle services inspect https://api.example.com/weather
+```
+
+Pay for one:
+```powershell
+circle services pay https://api.example.com/weather --address 0xYourWalletAddress --chain BASE --max-amount 0.01
+```
+
+Check remaining Gateway balance:
+```powershell
+circle gateway balance --address 0xYourWalletAddress --chain BASE
+```
+
+This is exactly what `src/consumer/agent.ts` in this repo automates — it
+decides what to search for, inspects terms, and pays, without you typing
+each command by hand.
+
+---
+
+## 3. Circle Contracts — deploy ARIKE's onchain Directory + Ledger
+
+You need a **developer-controlled wallet** (separate from your agent wallet)
+to pay gas for contract deployment, plus API credentials from the Console.
+
+1. In [Circle Console](https://console.circle.com), create an API key and
+   register an Entity Secret. **Never commit these** — they go in `.env`
+   (already gitignored).
+2. Create a dev-controlled wallet on `ARC-TESTNET` (see
+   [Dev-Controlled Wallets overview](https://developers.circle.com/wallets/dev-controlled))
+   and fund it with testnet USDC — Arc uses USDC as gas, so this wallet needs
+   a balance to pay for the deploy transaction.
+3. Add to `.env`:
+   ```
+   CIRCLE_API_KEY=
+   CIRCLE_ENTITY_SECRET=
+   ARIKE_DEPLOYER_WALLET_ID=
+   ```
+4. Compile and deploy (both already written in this repo):
+   ```powershell
+   node scripts/compile.js
+   node scripts/deploy-contracts.js
+   ```
+
+This deploys `ArikeDirectory` (service registry) and `ArikeLedger`
+(settlement log) using the exact same SDK pattern as Circle's own Arc
+Testnet quickstart.
+
+**Arc network facts worth knowing:**
+- Chain ID: `5042002`
+- RPC: `https://rpc.testnet.arc.network`
+- Faucet: `https://faucet.circle.com`
+- **Decimals gotcha:** native gas amounts use 18 decimals (like ETH elsewhere);
+  ERC-20 USDC amounts use 6 decimals. Mixing these up silently produces wrong
+  amounts — this trips up almost everyone the first time.
+
+---
+
+## 4. CCTP V2 — let a provider on another chain get paid in USDC on Arc
+
+Not yet wired into this repo — next step once the core demo works. CCTP V2
+is the current standard (V1 is legacy, phasing out July 31, 2026). Two ways in:
+- **Bridge Kit** — simpler SDK, best for the frontend/consumer side
+- **Raw CCTP** — for backend-initiated transfers
+
+See: [Bridge USDC to Arc with CCTP & Bridge Kit](https://community.arc.network/public/blogs/quickstart-spotlight-bridge-usdc-to-arc-with-cctp-bridge-kit)
+
+---
+
+## 5. Paymaster — remove native-gas friction
+
+Circle Paymaster support was expanded to Arc Testnet, letting either agent
+pay gas in USDC directly rather than needing a separate native-gas balance.
+Worth wiring into the provider service once the core payment flow is proven —
+lower priority than Contracts/CCTP for your first working demo.
+
+---
+
+## 6. StableFX — flagging honestly, not building it
+
+StableFX (onchain FX between stablecoins) currently requires **institutional
+KYB/AML approval** — it's not something a solo hackathon team can self-serve
+into in four weeks. Mention it in your pitch as a natural future extension
+(e.g. "a provider agent could settle in EURC via StableFX"), but don't spend
+build time trying to integrate it live. Being upfront about this in your deck
+reads as informed, not incomplete.
+
+---
+
+## 7. Circle Skills — better AI-assisted accuracy while you build
+
+Circle publishes AI coding skills that encode correct patterns (CCTP vs
+Gateway, USDC's 6-decimal rule, approve-then-deposit flows, etc.) so tools
+like Claude Code make fewer mistakes:
+
+```powershell
+circle skill install --tool claude-code
+```
+
+---
+
+## Checklist against the hackathon's required tool list
+
+| Tool | Status |
+|---|---|
+| Agent Wallets | Step 1 — do this first |
+| Nanopayments (x402) | Step 2 — already scaffolded in `src/consumer/agent.ts` |
+| Contracts | Step 3 — `ArikeDirectory` + `ArikeLedger` ready to deploy |
+| Gateway | Step 2 — same balance Nanopayments draw from |
+| CCTP V2 | Step 4 — planned, not yet wired |
+| Paymaster | Step 5 — planned, not yet wired |
+| StableFX | Institutional-gated — pitch only, not built |
