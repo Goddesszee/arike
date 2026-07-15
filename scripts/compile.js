@@ -7,9 +7,10 @@
 import solc from "solc";
 import fs from "node:fs";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 
-const CONTRACTS_DIR = new URL("../contracts", import.meta.url).pathname;
-const OUT_DIR = new URL("../build", import.meta.url).pathname;
+const CONTRACTS_DIR = fileURLToPath(new URL("../contracts", import.meta.url));
+const OUT_DIR = fileURLToPath(new URL("../build", import.meta.url));
 
 const contractFiles = ["ArikeDirectory.sol", "ArikeLedger.sol"];
 
