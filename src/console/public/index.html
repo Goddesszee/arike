@@ -140,6 +140,75 @@
   }
   .empty { padding: 40px; text-align: center; color: var(--muted); }
   .footnote { margin-top: 16px; font-size: 12px; color: var(--muted); }
+
+  .section-title {
+    font-size: 13px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin: 40px 0 12px 0;
+  }
+  .action-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px;
+  }
+  .action-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 18px;
+  }
+  .action-card h3 {
+    font-size: 14px;
+    margin: 0 0 4px 0;
+  }
+  .action-card p {
+    font-size: 12px;
+    color: var(--muted);
+    margin: 0 0 12px 0;
+    line-height: 1.5;
+  }
+  .action-card input, .action-card select {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 6px;
+    padding: 8px 10px;
+    font-size: 13px;
+    margin-bottom: 8px;
+    font-family: inherit;
+  }
+  .action-card input::placeholder { color: #55555c; }
+  .action-btn {
+    width: 100%;
+    background: transparent;
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .action-btn:hover { background: var(--accent-dim); }
+  .action-btn:disabled { opacity: 0.4; cursor: default; }
+  .action-result {
+    margin-top: 10px;
+    font-family: "SF Mono", Consolas, monospace;
+    font-size: 11px;
+    color: var(--muted);
+    white-space: pre-wrap;
+    word-break: break-all;
+    max-height: 140px;
+    overflow-y: auto;
+    display: none;
+  }
+  .action-result.show { display: block; }
+  .action-result.ok { color: var(--accent); }
+  .action-result.err { color: #f28b82; }
 </style>
 </head>
 <body>
@@ -170,7 +239,123 @@
       </div>
     </div>
     <p class="footnote">"Trigger agent purchase" calls a real backend endpoint that submits an actual transaction to <code>ArikeLedger.recordSettlement()</code> on Arc Testnet, paid in testnet USDC — a real onchain action, not a fake row, once the demo wallet is configured (see <code>CIRCLE_SETUP.md</code>). If that wallet isn't set up yet, it falls back to an illustrative run and says so explicitly.</p>
+
+    <div class="section-title">App Kit — try each capability directly</div>
+    <div class="action-grid">
+      <div class="action-card">
+        <h3>Swap</h3>
+        <p>Exchange USDC ↔ EURC on Arc Testnet. Estimates a route first.</p>
+        <input id="swapAddress" placeholder="Wallet address (0x...)" />
+        <select id="swapTokenIn">
+          <option value="USDC">USDC</option>
+          <option value="EURC">EURC</option>
+        </select>
+        <select id="swapTokenOut">
+          <option value="EURC">EURC</option>
+          <option value="USDC">USDC</option>
+        </select>
+        <input id="swapAmount" placeholder="Amount (e.g. 1.00)" value="1.00" />
+        <button class="action-btn" id="swapBtn">Run Swap</button>
+        <div class="action-result" id="swapResult"></div>
+      </div>
+
+      <div class="action-card">
+        <h3>Send</h3>
+        <p>Direct wallet-to-wallet USDC transfer on Arc Testnet.</p>
+        <input id="sendFrom" placeholder="From address (0x...)" />
+        <input id="sendTo" placeholder="To address (0x...)" />
+        <input id="sendAmount" placeholder="Amount (e.g. 1.00)" value="1.00" />
+        <button class="action-btn" id="sendBtn">Run Send</button>
+        <div class="action-result" id="sendResult"></div>
+      </div>
+
+      <div class="action-card">
+        <h3>Bridge</h3>
+        <p>CCTP V2 — move USDC from another testnet onto Arc. Needs a source-chain balance.</p>
+        <input id="bridgeAddress" placeholder="Wallet address (0x...)" />
+        <select id="bridgeFromChain">
+          <option value="Base_Sepolia">Base Sepolia</option>
+          <option value="Ethereum_Sepolia">Ethereum Sepolia</option>
+          <option value="Avalanche_Fuji">Avalanche Fuji</option>
+        </select>
+        <input id="bridgeAmount" placeholder="Amount (e.g. 5.00)" value="5.00" />
+        <button class="action-btn" id="bridgeBtn">Run Bridge</button>
+        <div class="action-result" id="bridgeResult"></div>
+      </div>
+
+      <div class="action-card">
+        <h3>Unified Balance</h3>
+        <p>Check ARIKE's chain-abstracted USDC balance (read-only, no inputs needed).</p>
+        <button class="action-btn" id="balanceBtn">Check Balance</button>
+        <div class="action-result" id="balanceResult"></div>
+      </div>
+    </div>
   </div>
+
+  <script>
+    async function runAction(btnId, resultId, fn) {
+      const btn = document.getElementById(btnId);
+      const resultEl = document.getElementById(resultId);
+      btn.disabled = true;
+      resultEl.classList.remove("show", "ok", "err");
+      resultEl.textContent = "Running...";
+      resultEl.classList.add("show");
+      try {
+        const data = await fn();
+        resultEl.textContent = JSON.stringify(data, null, 2);
+        resultEl.classList.add(data.ok ? "ok" : "err");
+      } catch (err) {
+        resultEl.textContent = "Request failed: " + err.message;
+        resultEl.classList.add("err");
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    async function postJSON(url, body) {
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      return res.json();
+    }
+
+    document.getElementById("swapBtn").addEventListener("click", () =>
+      runAction("swapBtn", "swapResult", () =>
+        postJSON("/api/swap", {
+          address: document.getElementById("swapAddress").value,
+          tokenIn: document.getElementById("swapTokenIn").value,
+          tokenOut: document.getElementById("swapTokenOut").value,
+          amountIn: document.getElementById("swapAmount").value,
+        })
+      )
+    );
+
+    document.getElementById("sendBtn").addEventListener("click", () =>
+      runAction("sendBtn", "sendResult", () =>
+        postJSON("/api/send", {
+          fromAddress: document.getElementById("sendFrom").value,
+          toAddress: document.getElementById("sendTo").value,
+          amount: document.getElementById("sendAmount").value,
+        })
+      )
+    );
+
+    document.getElementById("bridgeBtn").addEventListener("click", () =>
+      runAction("bridgeBtn", "bridgeResult", () =>
+        postJSON("/api/bridge", {
+          address: document.getElementById("bridgeAddress").value,
+          fromChain: document.getElementById("bridgeFromChain").value,
+          amountUsdc: document.getElementById("bridgeAmount").value,
+        })
+      )
+    );
+
+    document.getElementById("balanceBtn").addEventListener("click", () =>
+      runAction("balanceBtn", "balanceResult", () => fetch("/api/balance").then((r) => r.json()))
+    );
+  </script>
 
   <script>
     let simulatedRows = [];
