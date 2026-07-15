@@ -302,6 +302,86 @@
     padding: 18px 0; border: 1px dashed var(--border2); border-radius: var(--radius-sm);
   }
 
+  /* ── Swap/Bridge widget (Sell/Buy panel pattern) ── */
+  .swap-widget { position: relative; }
+  .swap-panel {
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+    margin-bottom: 6px;
+  }
+  .swap-panel-head {
+    display: flex; align-items: center; justify-content: space-between;
+    font-size: 11px; color: var(--text3);
+    text-transform: uppercase; letter-spacing: .08em; margin-bottom: 10px;
+  }
+  .swap-bal { text-transform: none; letter-spacing: 0; font-variant-numeric: tabular-nums; }
+  .max-link {
+    background: none; border: none; color: var(--accent3);
+    font-family: inherit; font-size: 11px; font-weight: 700;
+    cursor: pointer; padding: 0 0 0 6px; text-transform: uppercase;
+  }
+  .swap-panel-row { display: flex; align-items: center; gap: 10px; }
+  .token-select {
+    display: flex; align-items: center; gap: 6px;
+    background: var(--card2);
+    border: 1px solid var(--border2);
+    border-radius: 100px;
+    padding: 7px 12px;
+    font-family: inherit; font-size: 13px; font-weight: 700;
+    color: var(--text); cursor: pointer; white-space: nowrap;
+    transition: all .15s;
+  }
+  .token-select:hover:not(:disabled) { border-color: var(--accent); }
+  .token-select:disabled { cursor: default; opacity: .7; }
+  .token-select .chev { font-size: 10px; color: var(--text3); }
+  .swap-big-input {
+    flex: 1; min-width: 0;
+    background: transparent !important; border: none !important;
+    text-align: right; font-size: 22px !important; font-weight: 700;
+    font-variant-numeric: tabular-nums; color: var(--text);
+    padding: 0 !important; box-shadow: none !important;
+  }
+  .swap-big-input::placeholder { color: var(--text3); }
+  .swap-big-input.readonly-display {
+    color: var(--text2); font-size: 22px; font-weight: 700;
+    text-align: right; flex: 1; font-variant-numeric: tabular-nums;
+  }
+  .swap-usd-equiv { text-align: right; font-size: 11.5px; color: var(--text3); margin-top: 4px; }
+
+  .swap-flip-btn {
+    position: relative;
+    width: 32px; height: 32px;
+    margin: -6px auto;
+    border-radius: 9px;
+    background: var(--bg);
+    border: 1px solid var(--border2);
+    color: var(--accent3);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; cursor: pointer;
+    z-index: 2; transition: all .15s;
+  }
+  .swap-flip-btn:hover { border-color: var(--accent); background: rgba(14,165,233,.08); }
+  .swap-flip-btn.static { cursor: default; color: var(--text3); }
+  .swap-flip-btn.static:hover { border-color: var(--border2); background: var(--bg); }
+
+  .swap-rate-line {
+    display: flex; align-items: center; justify-content: space-between;
+    font-size: 12px; color: var(--text3);
+    padding: 10px 2px; margin-bottom: 10px;
+  }
+  .swap-rate-line .live-dot { color: var(--accent3); }
+  .refresh-btn {
+    background: none; border: none; color: var(--text3);
+    cursor: pointer; font-size: 14px; padding: 2px 4px;
+    transition: transform .3s;
+  }
+  .refresh-btn:hover { color: var(--accent3); }
+  .refresh-btn.spin { transform: rotate(180deg); }
+
+  .swap-submit-btn { width: 100%; }
+
   .action-result {
     margin-top: 10px;
     font-family: 'SF Mono', Consolas, monospace;
@@ -404,29 +484,38 @@
         <h3>Swap</h3>
         <p>Exchange USDC ↔ EURC on Arc Testnet. Estimates a route first.</p>
         <div id="swapLocked" class="locked-note">Connect a wallet above to try this</div>
-        <div id="swapForm" style="display:none">
-          <div class="toggle-group" id="swapTokenInGroup">
-            <button class="toggle-btn active" data-val="USDC">USDC</button>
-            <button class="toggle-btn" data-val="EURC">EURC</button>
-          </div>
-          <div class="toggle-group" id="swapTokenOutGroup">
-            <button class="toggle-btn" data-val="USDC">USDC</button>
-            <button class="toggle-btn active" data-val="EURC">EURC</button>
-          </div>
-          <div class="field">
-            <div class="flbl">Amount <span class="bal-hint" id="swapBalHint"></span></div>
-            <div class="amt-row">
-              <input id="swapAmount" placeholder="0.00" value="1.00" />
-              <button class="max-btn" id="swapMaxBtn">MAX</button>
+        <div id="swapForm" style="display:none" class="swap-widget">
+          <div class="swap-panel">
+            <div class="swap-panel-head">
+              <span>Sell</span>
+              <span class="swap-bal">Bal: <span id="swapSellBal">–</span> <button class="max-link" id="swapMaxBtn">MAX</button></span>
+            </div>
+            <div class="swap-panel-row">
+              <button class="token-select" id="swapTokenInBtn" type="button">💲 <span id="swapTokenInLabel">USDC</span></button>
+              <input id="swapAmount" class="swap-big-input" placeholder="0" value="" />
             </div>
           </div>
-          <button class="btn-sm" id="swapBtn">Run Swap</button>
+          <button class="swap-flip-btn" id="swapFlipBtn" type="button" title="Flip direction">⇅</button>
+          <div class="swap-panel">
+            <div class="swap-panel-head">
+              <span>Buy</span>
+              <span class="swap-bal">Bal: <span id="swapBuyBal">–</span></span>
+            </div>
+            <div class="swap-panel-row">
+              <button class="token-select" id="swapTokenOutBtn" type="button">💶 <span id="swapTokenOutLabel">EURC</span></button>
+              <div class="swap-big-input readonly-display" id="swapOutEstimate">–</div>
+            </div>
+          </div>
+          <div class="swap-rate-line">
+            <span id="swapRateText">Estimate appears after you enter an amount</span>
+            <button class="refresh-btn" id="swapRefreshBtn" type="button" title="Refresh estimate">↻</button>
+          </div>
+          <button class="btn swap-submit-btn" id="swapBtn">Swap USDC ↔ EURC</button>
           <div class="action-result" id="swapResult"></div>
         </div>
       </div>
 
-      <div class="action-card">
-        <h3>Send</h3>
+      <div class="action-card">        <h3>Send</h3>
         <p>Direct wallet-to-wallet USDC transfer on Arc Testnet.</p>
         <div id="sendLocked" class="locked-note">Connect a wallet above to try this</div>
         <div id="sendForm" style="display:none">
@@ -450,17 +539,29 @@
         <h3>Bridge</h3>
         <p>CCTP V2 — move USDC from another testnet onto Arc. Needs a source-chain balance.</p>
         <div id="bridgeLocked" class="locked-note">Connect a wallet above to try this</div>
-        <div id="bridgeForm" style="display:none">
-          <div class="toggle-group" id="bridgeChainGroup">
-            <button class="toggle-btn active" data-val="Base_Sepolia">Base</button>
-            <button class="toggle-btn" data-val="Ethereum_Sepolia">Ethereum</button>
-            <button class="toggle-btn" data-val="Avalanche_Fuji">Avalanche</button>
+        <div id="bridgeForm" style="display:none" class="swap-widget">
+          <div class="swap-panel">
+            <div class="swap-panel-head">
+              <span>From</span>
+              <span class="swap-bal">Bal: <span id="bridgeFromBal">–</span></span>
+            </div>
+            <div class="swap-panel-row">
+              <button class="token-select" id="bridgeChainBtn" type="button">🔵 <span id="bridgeChainLabel">Base Sepolia</span> <span class="chev">▾</span></button>
+              <input id="bridgeAmount" class="swap-big-input" placeholder="0" value="" />
+            </div>
           </div>
-          <div class="field">
-            <div class="flbl">Amount</div>
-            <input id="bridgeAmount" placeholder="0.00" value="5.00" />
+          <div class="swap-flip-btn static" title="Bridges into Arc Testnet">↓</div>
+          <div class="swap-panel">
+            <div class="swap-panel-head"><span>To</span></div>
+            <div class="swap-panel-row">
+              <button class="token-select" type="button" disabled>🟣 Arc Testnet</button>
+              <div class="swap-big-input readonly-display" id="bridgeReceiveEstimate">–</div>
+            </div>
           </div>
-          <button class="btn-sm" id="bridgeBtn">Run Bridge</button>
+          <div class="swap-rate-line">
+            <span id="bridgeFeeText">Transfer speed: SLOW (free, ~15 min) · arrives on Arc Testnet</span>
+          </div>
+          <button class="btn swap-submit-btn" id="bridgeBtn">Bridge to Arc</button>
           <div class="action-result" id="bridgeResult"></div>
         </div>
       </div>
@@ -570,19 +671,60 @@
       alert('Check the Unified Balance panel below for your exact spendable amount, then enter it here.');
     });
 
-    function wireToggleGroup(groupId) {
-      const group = document.getElementById(groupId);
-      group.querySelectorAll('.toggle-btn').forEach((btn) => {
-        btn.addEventListener('click', () => {
-          group.querySelectorAll('.toggle-btn').forEach((b) => b.classList.remove('active'));
-          btn.classList.add('active');
-        });
-      });
+    /* Swap: flip Sell/Buy tokens */
+    let swapDirection = 'USDC_TO_EURC'; // or 'EURC_TO_USDC'
+    function updateSwapLabels() {
+      const sellLabel = document.getElementById('swapTokenInLabel');
+      const buyLabel = document.getElementById('swapTokenOutLabel');
+      const sellBtn = document.getElementById('swapTokenInBtn');
+      const buyBtn = document.getElementById('swapTokenOutBtn');
+      if (swapDirection === 'USDC_TO_EURC') {
+        sellLabel.textContent = 'USDC'; buyLabel.textContent = 'EURC';
+        sellBtn.firstChild.textContent = '💲 ';
+        buyBtn.firstChild.textContent = '💶 ';
+      } else {
+        sellLabel.textContent = 'EURC'; buyLabel.textContent = 'USDC';
+        sellBtn.firstChild.textContent = '💶 ';
+        buyBtn.firstChild.textContent = '💲 ';
+      }
+      document.querySelector('#swapBtn').textContent =
+        `Swap ${sellLabel.textContent} ↔ ${buyLabel.textContent}`;
     }
-    wireToggleGroup('swapTokenInGroup');
-    wireToggleGroup('swapTokenOutGroup');
-    wireToggleGroup('bridgeChainGroup');
-    function activeVal(groupId) { return document.getElementById(groupId).querySelector('.toggle-btn.active').dataset.val; }
+    document.getElementById('swapFlipBtn').addEventListener('click', () => {
+      swapDirection = swapDirection === 'USDC_TO_EURC' ? 'EURC_TO_USDC' : 'USDC_TO_EURC';
+      updateSwapLabels();
+      document.getElementById('swapOutEstimate').textContent = '–';
+      document.getElementById('swapRateText').textContent = 'Estimate appears after you enter an amount';
+    });
+    document.getElementById('swapRefreshBtn').addEventListener('click', (e) => {
+      e.target.classList.add('spin');
+      setTimeout(() => e.target.classList.remove('spin'), 300);
+    });
+
+    /* Bridge: cycle source chain */
+    const BRIDGE_CHAINS = [
+      { val: 'Base_Sepolia', label: 'Base Sepolia', icon: '🔵' },
+      { val: 'Ethereum_Sepolia', label: 'Ethereum Sepolia', icon: '⟠' },
+      { val: 'Avalanche_Fuji', label: 'Avalanche Fuji', icon: '🔺' },
+    ];
+    let bridgeChainIndex = 0;
+    function updateBridgeChainLabel() {
+      const c = BRIDGE_CHAINS[bridgeChainIndex];
+      document.getElementById('bridgeChainLabel').textContent = c.label;
+      document.getElementById('bridgeChainBtn').firstChild.textContent = c.icon + ' ';
+    }
+    document.getElementById('bridgeChainBtn').addEventListener('click', () => {
+      bridgeChainIndex = (bridgeChainIndex + 1) % BRIDGE_CHAINS.length;
+      updateBridgeChainLabel();
+    });
+    function activeBridgeChain() { return BRIDGE_CHAINS[bridgeChainIndex].val; }
+
+    /* Bridge: live 1:1 estimate (SLOW speed is free, so receive == input) */
+    document.getElementById('bridgeAmount').addEventListener('input', (e) => {
+      const val = parseFloat(e.target.value);
+      document.getElementById('bridgeReceiveEstimate').textContent =
+        isNaN(val) ? '–' : val.toFixed(2);
+    });
 
     renderWalletArea();
     updateFormLocks();
@@ -741,14 +883,22 @@
     }
 
     document.getElementById("swapBtn").addEventListener("click", () =>
-      runAction("swapBtn", "swapResult", () =>
-        postJSON("/api/swap", {
+      runAction("swapBtn", "swapResult", async () => {
+        const [tokenIn, tokenOut] = swapDirection === 'USDC_TO_EURC' ? ['USDC', 'EURC'] : ['EURC', 'USDC'];
+        const data = await postJSON("/api/swap", {
           address: getWallet(),
-          tokenIn: activeVal('swapTokenInGroup'),
-          tokenOut: activeVal('swapTokenOutGroup'),
+          tokenIn,
+          tokenOut,
           amountIn: document.getElementById("swapAmount").value,
-        })
-      )
+        });
+        if (data.ok && data.estimate) {
+          document.getElementById('swapOutEstimate').textContent =
+            data.estimate.estimatedOutput?.amount ?? '–';
+          document.getElementById('swapRateText').textContent =
+            `Guaranteed minimum: ${data.estimate.stopLimit?.amount ?? '–'} ${tokenOut}`;
+        }
+        return data;
+      })
     );
     document.getElementById("sendBtn").addEventListener("click", () =>
       runAction("sendBtn", "sendResult", () =>
@@ -763,7 +913,7 @@
       runAction("bridgeBtn", "bridgeResult", () =>
         postJSON("/api/bridge", {
           address: getWallet(),
-          fromChain: activeVal('bridgeChainGroup'),
+          fromChain: activeBridgeChain(),
           amountUsdc: document.getElementById("bridgeAmount").value,
         })
       )
