@@ -506,6 +506,7 @@
               <button class="token-select" id="swapTokenInBtn" type="button">💲 <span id="swapTokenInLabel">USDC</span></button>
               <input id="swapAmount" class="swap-big-input" placeholder="0" value="" />
             </div>
+            <div class="swap-usd-equiv">≈ $<span id="swapSellUsd">0.00</span></div>
           </div>
           <button class="swap-flip-btn" id="swapFlipBtn" type="button" title="Flip direction">⇅</button>
           <div class="swap-panel">
@@ -517,6 +518,7 @@
               <button class="token-select" id="swapTokenOutBtn" type="button">💶 <span id="swapTokenOutLabel">EURC</span></button>
               <div class="swap-big-input readonly-display" id="swapOutEstimate">–</div>
             </div>
+            <div class="swap-usd-equiv">≈ $<span id="swapBuyUsd">0.00</span></div>
           </div>
           <div class="swap-rate-line">
             <span id="swapRateText">Estimate appears after you enter an amount</span>
@@ -541,6 +543,7 @@
               <button class="token-select" type="button" disabled>💲 USDC</button>
               <input id="sendAmount" class="swap-big-input" placeholder="0" value="" />
             </div>
+            <div class="swap-usd-equiv">≈ $<span id="sendUsd">0.00</span></div>
           </div>
           <div class="swap-panel">
             <div class="swap-panel-head"><span>To</span></div>
@@ -565,6 +568,7 @@
               <button class="token-select" id="bridgeChainBtn" type="button">🔵 <span id="bridgeChainLabel">Base Sepolia</span> <span class="chev">▾</span></button>
               <input id="bridgeAmount" class="swap-big-input" placeholder="0" value="" />
             </div>
+            <div class="swap-usd-equiv">≈ $<span id="bridgeFromUsd">0.00</span></div>
           </div>
           <div class="swap-flip-btn static" title="Bridges into Arc Testnet">↓</div>
           <div class="swap-panel">
@@ -573,6 +577,7 @@
               <button class="token-select" type="button" disabled>🟣 Arc Testnet</button>
               <div class="swap-big-input readonly-display" id="bridgeReceiveEstimate">–</div>
             </div>
+            <div class="swap-usd-equiv">≈ $<span id="bridgeToUsd">0.00</span></div>
           </div>
           <div class="swap-rate-line">
             <span id="bridgeFeeText">Transfer speed: SLOW (free, ~15 min) · arrives on Arc Testnet</span>
@@ -761,16 +766,66 @@
       document.querySelector('#swapBtn').textContent =
         `Swap ${sellLabel.textContent} ↔ ${buyLabel.textContent}`;
     }
+    let quoteDebounceTimer = null;
+
+    async function fetchLiveQuote() {
+      const amount = parseFloat(document.getElementById('swapAmount').value);
+      const [tokenIn, tokenOut] = swapDirection === 'USDC_TO_EURC' ? ['USDC', 'EURC'] : ['EURC', 'USDC'];
+
+      if (!amount || amount <= 0) {
+        document.getElementById('swapOutEstimate').textContent = '–';
+        document.getElementById('swapBuyUsd').textContent = '0.00';
+        document.getElementById('swapRateText').textContent = 'Estimate appears after you enter an amount';
+        return;
+      }
+      if (!getWallet()) {
+        document.getElementById('swapRateText').textContent = 'Log in to see a live rate';
+        return;
+      }
+
+      document.getElementById('swapRateText').textContent = 'Fetching live rate...';
+      try {
+        const res = await fetch('/api/quote', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ address: getWallet(), tokenIn, tokenOut, amountIn: String(amount) }),
+        });
+        const data = await res.json();
+        if (data.ok && data.estimate) {
+          const out = data.estimate.estimatedOutput?.amount;
+          document.getElementById('swapOutEstimate').textContent = out ?? '–';
+          document.getElementById('swapBuyUsd').textContent = out ? parseFloat(out).toFixed(2) : '0.00';
+          const rate = out ? (parseFloat(out) / amount).toFixed(4) : '–';
+          const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+          document.getElementById('swapRateText').innerHTML =
+            `1 ${tokenIn} ≈ ${rate} ${tokenOut} · <span class="live-dot">●</span> live ${now}`;
+        } else {
+          document.getElementById('swapRateText').textContent = data.message || data.error || 'No route available right now — testnet liquidity is thin';
+        }
+      } catch (err) {
+        document.getElementById('swapRateText').textContent = 'Could not fetch a live rate';
+      }
+    }
+
+    document.getElementById('swapAmount').addEventListener('input', (e) => {
+      const val = parseFloat(e.target.value);
+      document.getElementById('swapSellUsd').textContent = isNaN(val) ? '0.00' : val.toFixed(2);
+      clearTimeout(quoteDebounceTimer);
+      quoteDebounceTimer = setTimeout(fetchLiveQuote, 600);
+    });
+
     document.getElementById('swapFlipBtn').addEventListener('click', () => {
       swapDirection = swapDirection === 'USDC_TO_EURC' ? 'EURC_TO_USDC' : 'USDC_TO_EURC';
       updateSwapLabels();
       applyBalanceDisplay();
       document.getElementById('swapOutEstimate').textContent = '–';
       document.getElementById('swapRateText').textContent = 'Estimate appears after you enter an amount';
+      fetchLiveQuote();
     });
     document.getElementById('swapRefreshBtn').addEventListener('click', (e) => {
       e.target.classList.add('spin');
       setTimeout(() => e.target.classList.remove('spin'), 300);
+      fetchLiveQuote();
     });
 
     /* Bridge: cycle source chain */
@@ -794,8 +849,16 @@
     /* Bridge: live 1:1 estimate (SLOW speed is free, so receive == input) */
     document.getElementById('bridgeAmount').addEventListener('input', (e) => {
       const val = parseFloat(e.target.value);
-      document.getElementById('bridgeReceiveEstimate').textContent =
-        isNaN(val) ? '–' : val.toFixed(2);
+      const text = isNaN(val) ? '–' : val.toFixed(2);
+      document.getElementById('bridgeReceiveEstimate').textContent = text;
+      document.getElementById('bridgeFromUsd').textContent = isNaN(val) ? '0.00' : val.toFixed(2);
+      document.getElementById('bridgeToUsd').textContent = isNaN(val) ? '0.00' : val.toFixed(2);
+    });
+
+    /* Send: USD equivalent (USDC only, 1:1) */
+    document.getElementById('sendAmount').addEventListener('input', (e) => {
+      const val = parseFloat(e.target.value);
+      document.getElementById('sendUsd').textContent = isNaN(val) ? '0.00' : val.toFixed(2);
     });
 
     renderWalletArea();
