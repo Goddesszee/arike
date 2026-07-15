@@ -24,6 +24,7 @@ function compile(fileName) {
     settings: {
       outputSelection: { "*": { "*": ["abi", "evm.bytecode.object"] } },
       optimizer: { enabled: true, runs: 200 },
+      evmVersion: "paris", // Arc Testnet fails on PUSH0 (Shanghai+); Solidity >=0.8.20 defaults to Shanghai
     },
   };
 
