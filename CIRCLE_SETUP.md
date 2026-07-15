@@ -124,6 +124,34 @@ Testnet quickstart.
 
 ---
 
+## 3b. Make the public "Trigger agent purchase" button real
+
+The deployed console (`arike-six.vercel.app` or similar) has a button that
+calls `/api/simulate`, which submits a real transaction to
+`ArikeLedger.recordSettlement()` — an actual onchain action on Arc Testnet,
+safe to expose publicly since it's worthless testnet USDC.
+
+To turn this on, set these in **Vercel → your project → Settings →
+Environment Variables** (not just your local `.env` — Vercel doesn't read that file):
+
+```
+CIRCLE_API_KEY=
+CIRCLE_ENTITY_SECRET=
+ARIKE_DEMO_WALLET_ID=        # a SEPARATE, dedicated wallet — see note below
+ARIKE_LEDGER_ADDRESS=        # from npm run deploy:contracts
+```
+
+**Use a dedicated wallet for `ARIKE_DEMO_WALLET_ID`**, different from
+whatever wallet you used to deploy the contracts. Every public click spends
+its gas. It's testnet USDC — free and instantly refillable from
+`faucet.circle.com` — but keeping it separate means a burst of demo traffic
+never affects your own deploy/dev wallet.
+
+Until all four vars are set, the button gracefully falls back to an
+illustrative (clearly-labeled, non-onchain) animation instead of erroring.
+
+
+
 ## 4. CCTP V2 — let a provider on another chain get paid in USDC on Arc
 
 Not yet wired into this repo — next step once the core demo works. CCTP V2
