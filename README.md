@@ -121,14 +121,17 @@ Wallets are Circle Agent Wallets — no human key management on either side.
 | Gateway | Unified USDC balance the consumer agent draws from | `src/lib/circle-tools.ts` |
 | Circle Agent Marketplace | Discovery layer — where ARIKE lists its own service and finds others | `circle services search/inspect/pay` |
 | Circle Contracts | Onchain service directory + settlement ledger | `contracts/*.sol`, `scripts/deploy-contracts.js` |
-| CCTP V2 | Lets an agent on another chain consolidate USDC onto Arc | `src/lib/bridge.ts`, try with `npm run try:bridge` |
+| CCTP V2 (Bridge) | Lets an agent on another chain consolidate USDC onto Arc | `src/lib/bridge.ts`, try with `npm run try:bridge` |
 | Swap (App Kit) | Same-chain USDC<->EURC exchange on Arc | `src/lib/swap.ts`, try with `npm run try:swap` |
+| Send (App Kit) | Direct wallet-to-wallet transfer | `src/lib/send.ts`, try with `npm run try:send` |
+| Unified Balance (App Kit) | One balance fed from any chain, spendable on any chain | `src/lib/unifiedBalance.ts`, try with `npm run try:balance` |
 | Paymaster | Base-side gas-in-USDC for provider agents not living on Arc | `src/lib/paymaster.ts` |
 | StableFX | Institutional KYB/AML-gated — mentioned in pitch as roadmap, not built | — |
 
-All of Bridge, Swap, Contracts, and the consumer/provider agents operate
-through the same Circle-managed wallet (via `CIRCLE_API_KEY` +
-`CIRCLE_ENTITY_SECRET`) — no raw private key exists anywhere in this codebase.
+All of Bridge, Swap, Send, Unified Balance, Contracts, and the
+consumer/provider agents operate through the same Circle-managed wallet
+(via `CIRCLE_API_KEY` + `CIRCLE_ENTITY_SECRET`) — no raw private key
+exists anywhere in this codebase.
 
 See `CIRCLE_SETUP.md` for the complete, verified setup walkthrough for every tool above.
 
