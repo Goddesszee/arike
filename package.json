@@ -7,17 +7,22 @@
   "scripts": {
     "provider": "tsx src/provider/server.ts",
     "consumer": "tsx src/consumer/agent.ts",
-    "consumer:mock": "tsx src/consumer/agent.ts --mock"
+    "consumer:mock": "tsx src/consumer/agent.ts --mock",
+    "compile": "node scripts/compile.js",
+    "deploy:contracts": "node scripts/deploy-contracts.js"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.65.0",
+    "@circle-fin/developer-controlled-wallets": "^10.8.0",
+    "@circle-fin/smart-contract-platform": "^10.8.0",
+    "dotenv": "^16.4.5",
     "express": "^4.21.2",
-    "dotenv": "^16.4.5"
+    "solc": "^0.8.36"
   },
   "devDependencies": {
-    "tsx": "^4.19.2",
-    "typescript": "^5.7.2",
     "@types/express": "^4.17.21",
-    "@types/node": "^22.10.2"
+    "@types/node": "^22.10.2",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
   }
 }
