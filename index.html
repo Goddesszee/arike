@@ -13,9 +13,9 @@
     --card2: #222222;
     --border: rgba(255,255,255,.07);
     --border2: rgba(255,255,255,.12);
-    --accent: #8b5cf6;
-    --accent3: #a855f7;
-    --accent4: #c084fc;
+    --accent: #0ea5e9;
+    --accent3: #38bdf8;
+    --accent4: #7dd3fc;
     --text: #ffffff;
     --text2: #a0a0a0;
     --text3: #666666;
@@ -53,7 +53,7 @@
     width: 38px; height: 38px; border-radius: 11px;
     background: var(--accent);
     display: flex; align-items: center; justify-content: center;
-    box-shadow: 0 4px 16px rgba(139,92,246,.45), inset 0 1px 0 rgba(255,255,255,.15);
+    box-shadow: 0 4px 16px rgba(14,165,233,.45), inset 0 1px 0 rgba(255,255,255,.15);
     flex-shrink: 0;
   }
   .logo svg { width: 20px; height: 20px; }
@@ -70,10 +70,10 @@
     font-variant-numeric: tabular-nums;
     font-size: 13px;
     color: var(--accent3);
-    border: 1px solid rgba(168,85,247,.3);
+    border: 1px solid rgba(14,165,233,.3);
     padding: 5px 12px 5px 10px;
     border-radius: 100px;
-    background: rgba(168,85,247,.08);
+    background: rgba(14,165,233,.08);
     display: flex; align-items: center; gap: 6px;
   }
   .net-pill::before {
@@ -101,24 +101,24 @@
     background: var(--accent);
     border: none;
     border-radius: 100px;
-    color: #f3e8ff;
+    color: #e0f7ff;
     font-family: inherit;
     font-size: 14px;
     font-weight: 700;
     letter-spacing: .01em;
     cursor: pointer;
     white-space: nowrap;
-    box-shadow: 0 5px 24px rgba(168,85,247,.4), inset 0 1px 0 rgba(255,255,255,.15);
+    box-shadow: 0 5px 24px rgba(14,165,233,.4), inset 0 1px 0 rgba(255,255,255,.15);
     transition: all .2s;
   }
-  .btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 7px 28px rgba(168,85,247,.5); }
+  .btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 7px 28px rgba(14,165,233,.5); }
   .btn:disabled { opacity: .4; cursor: default; transform: none; box-shadow: none; }
 
   .btn-sm {
     width: 100%;
     padding: 10px;
-    background: rgba(168,85,247,.12);
-    border: 1px solid rgba(168,85,247,.28);
+    background: rgba(14,165,233,.12);
+    border: 1px solid rgba(14,165,233,.28);
     border-radius: var(--radius-sm);
     color: var(--accent3);
     font-family: inherit;
@@ -127,7 +127,7 @@
     cursor: pointer;
     transition: all .18s;
   }
-  .btn-sm:hover:not(:disabled) { background: rgba(168,85,247,.2); border-color: rgba(168,85,247,.45); }
+  .btn-sm:hover:not(:disabled) { background: rgba(14,165,233,.2); border-color: rgba(14,165,233,.45); }
   .btn-sm:disabled { opacity: .4; cursor: default; }
 
   .agent-log {
@@ -167,7 +167,7 @@
     content: '';
     position: absolute; top: -20px; right: -20px;
     width: 110px; height: 110px; border-radius: 50%;
-    background: radial-gradient(circle, rgba(168,85,247,.18), transparent 70%);
+    background: radial-gradient(circle, rgba(14,165,233,.18), transparent 70%);
     pointer-events: none;
   }
   .stat .label {
@@ -205,7 +205,7 @@
     align-items: center;
     transition: all .15s;
   }
-  .row:not(.head):hover { background: rgba(168,85,247,.05); }
+  .row:not(.head):hover { background: rgba(14,165,233,.05); }
   .row:last-child { border-bottom: none; }
   .row.head {
     background: rgba(255,255,255,.02);
@@ -219,7 +219,7 @@
   .amount { color: var(--accent4); text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }
   .time { color: var(--text3); text-align: right; font-size: 12px; }
   .row.new { animation: flash 1.4s ease-out; }
-  @keyframes flash { 0% { background: rgba(168,85,247,.15); } 100% { background: transparent; } }
+  @keyframes flash { 0% { background: rgba(14,165,233,.15); } 100% { background: transparent; } }
   .empty { padding: 44px; text-align: center; color: var(--text3); font-size: 13px; }
   .footnote { margin-top: 16px; font-size: 12px; color: var(--text3); line-height: 1.6; }
   .footnote code {
@@ -234,10 +234,10 @@
   }
   .action-card {
     background: rgba(255,255,255,.04);
-    border: 1px solid rgba(168,85,247,.18);
+    border: 1px solid rgba(14,165,233,.18);
     border-radius: var(--radius);
     padding: 18px 20px;
-    box-shadow: 0 8px 32px rgba(0,0,0,.3), inset 0 1px 0 rgba(168,85,247,.12);
+    box-shadow: 0 8px 32px rgba(0,0,0,.3), inset 0 1px 0 rgba(14,165,233,.12);
   }
   .action-card h3 {
     font-size: 14px; font-weight: 700; margin: 0 0 4px 0; color: var(--text);
@@ -260,7 +260,7 @@
   }
   .action-card input:focus, .action-card select:focus {
     border-color: var(--accent);
-    box-shadow: 0 0 0 3px rgba(168,85,247,.18);
+    box-shadow: 0 0 0 3px rgba(14,165,233,.18);
   }
   .action-card input::placeholder { color: var(--text3); opacity: .8; }
   .action-result {
@@ -294,7 +294,7 @@
       <div class="brand">
         <div class="logo">
           <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M12 3L20 19H4L12 3Z" fill="#f3e8ff"/>
+            <path d="M12 3L20 19H4L12 3Z" fill="#e0f7ff"/>
           </svg>
         </div>
         <h1>ARIKE<span> / console</span></h1>
