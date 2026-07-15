@@ -394,6 +394,39 @@
   }
   .send-address-input::placeholder { color: var(--text3); }
 
+  .available-row {
+    display: flex; align-items: center; gap: 6px;
+    justify-content: flex-end;
+    font-size: 11.5px; color: var(--text3);
+    margin-top: 8px; padding-top: 8px;
+    border-top: 1px solid var(--border);
+  }
+  .available-row span:nth-child(2) { color: var(--text2); font-variant-numeric: tabular-nums; font-weight: 600; }
+
+  .gateway-balance-card {
+    display: flex; align-items: center; gap: 12px;
+    background: linear-gradient(145deg, var(--surface) 0%, var(--bg) 50%, var(--surface) 100%);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius-sm);
+    padding: 14px 16px;
+    margin-bottom: 12px;
+  }
+  .gateway-balance-icon {
+    width: 34px; height: 34px; border-radius: 10px;
+    background: rgba(14,165,233,.12);
+    border: 1px solid rgba(14,165,233,.28);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px; flex-shrink: 0; color: var(--accent3);
+  }
+  .gateway-balance-label {
+    font-size: 10px; color: var(--text3); text-transform: uppercase;
+    letter-spacing: .1em; font-weight: 600; margin-bottom: 2px;
+  }
+  .gateway-balance-value {
+    font-size: 16px; font-weight: 700; color: var(--text);
+    font-variant-numeric: tabular-nums;
+  }
+
   .action-result {
     margin-top: 10px;
     font-family: 'SF Mono', Consolas, monospace;
@@ -531,25 +564,34 @@
 
       <div class="action-card">
         <h3>Send</h3>
-        <p>Direct wallet-to-wallet USDC transfer on Arc Testnet.</p>
+        <p>Direct wallet-to-wallet transfer on Arc Testnet.</p>
         <div id="sendLocked" class="locked-note">Log in above to try this</div>
         <div id="sendForm" style="display:none" class="swap-widget">
           <div class="swap-panel">
-            <div class="swap-panel-head">
-              <span>Amount</span>
-              <span class="swap-bal">Bal: <span id="sendBal">–</span> <button class="max-link" id="sendMaxBtn">MAX</button></span>
-            </div>
+            <div class="swap-panel-head"><span>Send To</span></div>
             <div class="swap-panel-row">
-              <button class="token-select" type="button" disabled>💲 USDC</button>
+              <input id="sendTo" class="send-address-input" placeholder="0x..." />
+              <button class="max-link" id="sendPasteBtn" type="button">Paste</button>
+            </div>
+          </div>
+          <div class="toggle-group" id="sendTokenGroup" style="margin-top:8px">
+            <button class="toggle-btn active" data-val="USDC">USDC</button>
+            <button class="toggle-btn" data-val="EURC">EURC</button>
+          </div>
+          <div class="swap-panel">
+            <div class="swap-panel-head"><span>Amount</span></div>
+            <div class="swap-panel-row">
+              <button class="token-select" id="sendTokenBadge" type="button" disabled>💲 USDC</button>
               <input id="sendAmount" class="swap-big-input" placeholder="0" value="" />
             </div>
             <div class="swap-usd-equiv">≈ $<span id="sendUsd">0.00</span></div>
+            <div class="available-row">
+              <span>Available</span>
+              <span id="sendBal">–</span>
+              <button class="max-link" id="sendMaxBtn">MAX</button>
+            </div>
           </div>
-          <div class="swap-panel">
-            <div class="swap-panel-head"><span>To</span></div>
-            <input id="sendTo" class="send-address-input" placeholder="0x..." />
-          </div>
-          <button class="btn swap-submit-btn" id="sendBtn">Send USDC</button>
+          <button class="btn swap-submit-btn" id="sendBtn">Send →</button>
           <div class="action-result" id="sendResult"></div>
         </div>
       </div>
@@ -559,6 +601,13 @@
         <p>CCTP V2 — move USDC from another testnet onto Arc. Needs a source-chain balance.</p>
         <div id="bridgeLocked" class="locked-note">Log in above to try this</div>
         <div id="bridgeForm" style="display:none" class="swap-widget">
+          <div class="gateway-balance-card">
+            <div class="gateway-balance-icon">🌐</div>
+            <div>
+              <div class="gateway-balance-label">Gateway Balance</div>
+              <div class="gateway-balance-value" id="gatewayBalanceValue">– USDC</div>
+            </div>
+          </div>
           <div class="swap-panel">
             <div class="swap-panel-head">
               <span>From</span>
@@ -730,6 +779,8 @@
       const sellIsUsdc = swapDirection === 'USDC_TO_EURC';
       document.getElementById('swapSellBal').textContent = sellIsUsdc ? usdcText : 'n/a';
       document.getElementById('swapBuyBal').textContent = sellIsUsdc ? 'n/a' : usdcText;
+      const gwEl = document.getElementById('gatewayBalanceValue');
+      if (gwEl) gwEl.textContent = `${usdcText} USDC`;
     }
 
     document.getElementById('swapMaxBtn').addEventListener('click', () => {
@@ -1035,12 +1086,34 @@
         return data;
       })
     );
+    /* Send: token toggle (USDC/EURC) */
+    let sendToken = 'USDC';
+    document.getElementById('sendTokenGroup').querySelectorAll('.toggle-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        document.getElementById('sendTokenGroup').querySelectorAll('.toggle-btn').forEach((b) => b.classList.remove('active'));
+        btn.classList.add('active');
+        sendToken = btn.dataset.val;
+        document.getElementById('sendTokenBadge').textContent = (sendToken === 'USDC' ? '💲 ' : '💶 ') + sendToken;
+        document.getElementById('sendBtn').textContent = `Send ${sendToken} →`;
+      });
+    });
+
+    document.getElementById('sendPasteBtn').addEventListener('click', async () => {
+      try {
+        const text = await navigator.clipboard.readText();
+        document.getElementById('sendTo').value = text.trim();
+      } catch (err) {
+        alert('Could not read clipboard — paste manually with Ctrl+V.');
+      }
+    });
+
     document.getElementById("sendBtn").addEventListener("click", () =>
       runAction("sendBtn", "sendResult", () =>
         postJSON("/api/send", {
           fromAddress: getWallet(),
           toAddress: document.getElementById("sendTo").value,
           amount: document.getElementById("sendAmount").value,
+          token: sendToken,
         })
       )
     );
