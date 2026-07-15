@@ -22,12 +22,25 @@
     --danger: #f87171;
     --radius: 14px;
     --radius-sm: 10px;
+    --shell-shadow: 0 8px 32px rgba(0,0,0,.4);
+  }
+  [data-theme="light"] {
+    --bg: #fafafa;
+    --surface: #f4f4f4;
+    --card2: #ebebeb;
+    --border: #e4e4e4;
+    --border2: #cccccc;
+    --accent: #0ea5e9;
+    --accent3: #0284c7;
+    --accent4: #0369a1;
+    --text: #1a1a1a;
+    --text2: #555555;
+    --text3: #8a8a8a;
+    --danger: #dc2626;
+    --shell-shadow: 0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
   }
   * { box-sizing: border-box; }
-  html, body {
-    background: var(--bg);
-    -webkit-font-smoothing: antialiased;
-  }
+  html, body { background: var(--bg); }
   body {
     margin: 0;
     color: var(--text);
@@ -37,6 +50,8 @@
     line-height: 1.6;
     letter-spacing: -.01em;
     padding: 48px 24px 80px;
+    -webkit-font-smoothing: antialiased;
+    transition: background-color .2s, color .2s;
   }
   .wrap { max-width: 920px; margin: 0 auto; }
 
@@ -57,14 +72,55 @@
     flex-shrink: 0;
   }
   .logo svg { width: 20px; height: 20px; }
-  h1 {
-    font-size: 22px;
-    font-weight: 700;
-    letter-spacing: -.02em;
-    margin: 0;
-    color: var(--text);
-  }
+  h1 { font-size: 22px; font-weight: 700; letter-spacing: -.02em; margin: 0; color: var(--text); }
   h1 span { color: var(--accent4); font-weight: 400; }
+
+  .header-right { display: flex; align-items: center; gap: 10px; }
+
+  .icon-btn {
+    width: 34px; height: 34px;
+    border-radius: 9px;
+    border: 1px solid var(--border2);
+    background: transparent;
+    color: var(--text2);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    transition: all .15s;
+    flex-shrink: 0;
+  }
+  .icon-btn:hover { border-color: var(--accent); color: var(--accent3); }
+  .icon-btn svg { width: 16px; height: 16px; }
+
+  .wallet-pill {
+    display: flex; align-items: center; gap: 8px;
+    background: rgba(14,165,233,.08);
+    border: 1px solid rgba(14,165,233,.28);
+    border-radius: 100px;
+    padding: 6px 8px 6px 14px;
+    font-size: 12.5px;
+    color: var(--accent3);
+    font-family: 'SF Mono', Consolas, monospace;
+  }
+  .wallet-pill button {
+    background: transparent; border: none; color: var(--text3);
+    cursor: pointer; font-size: 15px; line-height: 1; padding: 2px 4px;
+  }
+  .wallet-pill button:hover { color: var(--danger); }
+
+  .connect-btn {
+    padding: 10px 20px;
+    background: var(--accent);
+    border: none;
+    border-radius: 100px;
+    color: #ffffff;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 5px 20px rgba(14,165,233,.4);
+    transition: all .2s;
+  }
+  .connect-btn:hover { transform: translateY(-2px); }
 
   .net-pill {
     font-variant-numeric: tabular-nums;
@@ -77,8 +133,7 @@
     display: flex; align-items: center; gap: 6px;
   }
   .net-pill::before {
-    content: '';
-    width: 6px; height: 6px; border-radius: 50%;
+    content: ''; width: 6px; height: 6px; border-radius: 50%;
     background: var(--accent3);
     box-shadow: 0 0 6px var(--accent3);
     animation: pulse 2s ease infinite;
@@ -86,12 +141,8 @@
   @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .35; } }
 
   .subtitle-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 16px;
-    margin: 20px 0 28px;
-    flex-wrap: wrap;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 16px; margin: 20px 0 28px; flex-wrap: wrap;
   }
   .subtitle { color: var(--text2); margin: 0; font-size: 14px; max-width: 520px; }
 
@@ -99,15 +150,10 @@
     display: flex; align-items: center; justify-content: center; gap: 8px;
     padding: 12px 22px;
     background: var(--accent);
-    border: none;
-    border-radius: 100px;
-    color: #e0f7ff;
-    font-family: inherit;
-    font-size: 14px;
-    font-weight: 700;
-    letter-spacing: .01em;
-    cursor: pointer;
-    white-space: nowrap;
+    border: none; border-radius: 100px;
+    color: #ffffff;
+    font-family: inherit; font-size: 14px; font-weight: 700; letter-spacing: .01em;
+    cursor: pointer; white-space: nowrap;
     box-shadow: 0 5px 24px rgba(14,165,233,.4), inset 0 1px 0 rgba(255,255,255,.15);
     transition: all .2s;
   }
@@ -115,17 +161,13 @@
   .btn:disabled { opacity: .4; cursor: default; transform: none; box-shadow: none; }
 
   .btn-sm {
-    width: 100%;
-    padding: 10px;
+    width: 100%; padding: 10px;
     background: rgba(14,165,233,.12);
     border: 1px solid rgba(14,165,233,.28);
     border-radius: var(--radius-sm);
     color: var(--accent3);
-    font-family: inherit;
-    font-size: 13px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all .18s;
+    font-family: inherit; font-size: 13px; font-weight: 700;
+    cursor: pointer; transition: all .18s;
   }
   .btn-sm:hover:not(:disabled) { background: rgba(14,165,233,.2); border-color: rgba(14,165,233,.45); }
   .btn-sm:disabled { opacity: .4; cursor: default; }
@@ -135,12 +177,9 @@
     background: var(--surface);
     border: 1px solid var(--border2);
     border-radius: var(--radius);
-    padding: 18px 20px;
-    margin-bottom: 24px;
+    padding: 18px 20px; margin-bottom: 24px;
     font-family: 'SF Mono', Consolas, monospace;
-    font-size: 13px;
-    color: var(--text2);
-    line-height: 1.9;
+    font-size: 13px; color: var(--text2); line-height: 1.9;
   }
   .agent-log.active { display: block; animation: up .25s ease both; }
   .agent-log .line { opacity: 0; animation: appear .3s forwards; }
@@ -148,72 +187,46 @@
   @keyframes up { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
   .agent-log .done { color: var(--accent4); }
 
-  .stats {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 12px;
-    margin-bottom: 28px;
-  }
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 28px; }
   .stat {
-    background: linear-gradient(145deg, #1a1a1a 0%, #111111 50%, #1a1a1a 100%);
+    background: linear-gradient(145deg, var(--surface) 0%, var(--bg) 50%, var(--surface) 100%);
     border: 1px solid var(--border2);
     border-radius: var(--radius);
     padding: 18px 20px;
-    position: relative;
-    overflow: hidden;
-    box-shadow: 0 8px 32px rgba(0,0,0,.4);
+    position: relative; overflow: hidden;
+    box-shadow: var(--shell-shadow);
   }
   .stat::before {
-    content: '';
-    position: absolute; top: -20px; right: -20px;
+    content: ''; position: absolute; top: -20px; right: -20px;
     width: 110px; height: 110px; border-radius: 50%;
-    background: radial-gradient(circle, rgba(14,165,233,.18), transparent 70%);
+    background: radial-gradient(circle, rgba(14,165,233,.16), transparent 70%);
     pointer-events: none;
   }
   .stat .label {
-    font-size: 11px; color: rgba(255,255,255,.4);
-    text-transform: uppercase; letter-spacing: .16em;
-    margin-bottom: 8px; font-weight: 600;
+    font-size: 11px; color: var(--text3);
+    text-transform: uppercase; letter-spacing: .16em; margin-bottom: 8px; font-weight: 600;
   }
   .stat .value {
     font-size: 26px; font-weight: 700; letter-spacing: -.03em;
-    font-variant-numeric: tabular-nums;
-    color: #f0f0f0;
+    font-variant-numeric: tabular-nums; color: var(--text);
   }
 
   .section-title {
-    font-size: 12px;
-    color: var(--text3);
-    text-transform: uppercase;
-    letter-spacing: .16em;
-    font-weight: 600;
+    font-size: 12px; color: var(--text3);
+    text-transform: uppercase; letter-spacing: .16em; font-weight: 600;
     margin: 40px 0 12px 0;
   }
-  .feed {
-    background: rgba(255,255,255,.02);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    overflow: hidden;
-  }
+  .feed { background: rgba(128,128,128,.03); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
   .row {
-    display: grid;
-    grid-template-columns: 1fr 1fr 96px 88px;
-    gap: 12px;
-    padding: 14px 18px;
-    border-bottom: 1px solid var(--border);
-    font-size: 13px;
-    align-items: center;
-    transition: all .15s;
+    display: grid; grid-template-columns: 1fr 1fr 96px 88px; gap: 12px;
+    padding: 14px 18px; border-bottom: 1px solid var(--border);
+    font-size: 13px; align-items: center; transition: all .15s;
   }
   .row:not(.head):hover { background: rgba(14,165,233,.05); }
   .row:last-child { border-bottom: none; }
   .row.head {
-    background: rgba(255,255,255,.02);
-    color: var(--text3);
-    text-transform: uppercase;
-    letter-spacing: .08em;
-    font-size: 10.5px;
-    font-weight: 600;
+    background: rgba(128,128,128,.03); color: var(--text3);
+    text-transform: uppercase; letter-spacing: .08em; font-size: 10.5px; font-weight: 600;
   }
   .addr { font-family: 'SF Mono', Consolas, monospace; color: var(--text); font-size: 12.5px; }
   .amount { color: var(--accent4); text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }
@@ -223,63 +236,119 @@
   .empty { padding: 44px; text-align: center; color: var(--text3); font-size: 13px; }
   .footnote { margin-top: 16px; font-size: 12px; color: var(--text3); line-height: 1.6; }
   .footnote code {
-    background: rgba(255,255,255,.06); border-radius: 4px; padding: 1px 5px;
+    background: rgba(128,128,128,.15); border-radius: 4px; padding: 1px 5px;
     font-family: 'SF Mono', Consolas, monospace; font-size: 11.5px; color: var(--accent4);
   }
 
-  .action-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
-    gap: 14px;
-  }
+  .action-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
   .action-card {
-    background: rgba(255,255,255,.04);
+    background: rgba(128,128,128,.04);
     border: 1px solid rgba(14,165,233,.18);
     border-radius: var(--radius);
     padding: 18px 20px;
-    box-shadow: 0 8px 32px rgba(0,0,0,.3), inset 0 1px 0 rgba(14,165,233,.12);
+    box-shadow: var(--shell-shadow), inset 0 1px 0 rgba(14,165,233,.1);
   }
-  .action-card h3 {
-    font-size: 14px; font-weight: 700; margin: 0 0 4px 0; color: var(--text);
+  .action-card h3 { font-size: 14px; font-weight: 700; margin: 0 0 4px 0; color: var(--text); }
+  .action-card p { font-size: 12px; color: var(--text3); margin: 0 0 14px 0; line-height: 1.5; }
+
+  .field { margin-bottom: 10px; }
+  .flbl {
+    display: flex; align-items: center; justify-content: space-between;
+    font-size: 10.5px; color: var(--text2);
+    letter-spacing: .08em; text-transform: uppercase; margin-bottom: 6px;
   }
-  .action-card p {
-    font-size: 12px; color: var(--text3); margin: 0 0 14px 0; line-height: 1.5;
-  }
-  .action-card input, .action-card select {
+  .flbl .bal-hint { color: var(--accent3); font-variant-numeric: tabular-nums; text-transform: none; letter-spacing: 0; }
+
+  .action-card input {
     width: 100%;
     background: var(--surface);
-    border: 1px solid rgba(255,255,255,.1);
+    border: 1px solid var(--border2);
     color: var(--text);
     border-radius: var(--radius-sm);
     padding: 10px 13px;
     font-size: 13px;
-    margin-bottom: 8px;
     font-family: inherit;
     outline: none;
     transition: all .2s;
   }
-  .action-card input:focus, .action-card select:focus {
-    border-color: var(--accent);
-    box-shadow: 0 0 0 3px rgba(14,165,233,.18);
-  }
+  .action-card input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(14,165,233,.18); }
   .action-card input::placeholder { color: var(--text3); opacity: .8; }
+  .action-card input:disabled { opacity: .5; cursor: not-allowed; }
+
+  .amt-row { display: flex; gap: 7px; }
+  .amt-row input { flex: 1; }
+  .max-btn {
+    background: rgba(14,165,233,.1); border: 1px solid rgba(14,165,233,.28);
+    border-radius: var(--radius-sm); color: var(--accent3);
+    font-family: inherit; font-size: 11.5px; font-weight: 700;
+    padding: 0 12px; cursor: pointer; transition: all .15s;
+  }
+  .max-btn:hover { background: rgba(14,165,233,.2); }
+
+  .toggle-group { display: flex; gap: 6px; margin-bottom: 10px; }
+  .toggle-btn {
+    flex: 1; padding: 9px 4px;
+    border: 1px solid var(--border2);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    color: var(--text3);
+    font-family: inherit; font-size: 12.5px; font-weight: 700;
+    cursor: pointer; text-align: center; transition: all .15s;
+  }
+  .toggle-btn.active { border-color: var(--accent); background: rgba(14,165,233,.12); color: var(--accent3); }
+
+  .locked-note {
+    font-size: 12px; color: var(--text3); text-align: center;
+    padding: 18px 0; border: 1px dashed var(--border2); border-radius: var(--radius-sm);
+  }
+
   .action-result {
     margin-top: 10px;
     font-family: 'SF Mono', Consolas, monospace;
-    font-size: 11px;
-    color: var(--text3);
-    white-space: pre-wrap;
-    word-break: break-all;
-    max-height: 150px;
-    overflow-y: auto;
+    font-size: 11px; color: var(--text3);
+    white-space: pre-wrap; word-break: break-all;
+    max-height: 150px; overflow-y: auto;
     display: none;
-    background: rgba(255,255,255,.03);
-    border-radius: 8px;
-    padding: 10px;
+    background: rgba(128,128,128,.06);
+    border-radius: 8px; padding: 10px;
   }
   .action-result.show { display: block; }
   .action-result.ok { color: var(--accent4); }
   .action-result.err { color: var(--danger); }
+
+  .modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,.7); z-index: 1000;
+    align-items: center; justify-content: center;
+    backdrop-filter: blur(6px);
+  }
+  .modal-overlay.show { display: flex; }
+  .modal {
+    background: var(--bg);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius);
+    padding: 24px;
+    width: 100%; max-width: 380px;
+    box-shadow: 0 20px 60px rgba(0,0,0,.5);
+    animation: up .25s ease both;
+  }
+  .modal h3 { margin: 0 0 6px 0; font-size: 16px; }
+  .modal p { margin: 0 0 16px 0; font-size: 13px; color: var(--text3); line-height: 1.5; }
+  .modal input {
+    width: 100%; background: var(--surface); border: 1px solid var(--border2);
+    color: var(--text); border-radius: var(--radius-sm); padding: 11px 13px;
+    font-size: 13px; font-family: 'SF Mono', Consolas, monospace; outline: none;
+    margin-bottom: 12px;
+  }
+  .modal input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(14,165,233,.18); }
+  .modal-actions { display: flex; gap: 8px; }
+  .modal-actions .btn { flex: 1; }
+  .modal-cancel {
+    flex: 1; background: transparent; border: 1px solid var(--border2);
+    border-radius: 100px; color: var(--text2); font-family: inherit;
+    font-size: 14px; font-weight: 600; cursor: pointer;
+  }
+  .modal-cancel:hover { border-color: var(--text3); }
 
   @media (max-width: 640px) {
     .stats { grid-template-columns: 1fr; }
@@ -294,12 +363,18 @@
       <div class="brand">
         <div class="logo">
           <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M12 3L20 19H4L12 3Z" fill="#e0f7ff"/>
+            <path d="M12 3L20 19H4L12 3Z" fill="#ffffff"/>
           </svg>
         </div>
         <h1>ARIKE<span> / console</span></h1>
       </div>
-      <div class="net-pill" id="statusPill">connecting…</div>
+      <div class="header-right">
+        <div class="net-pill" id="statusPill">connecting…</div>
+        <button class="icon-btn" id="themeToggle" title="Toggle theme">
+          <svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></svg>
+        </button>
+        <div id="walletArea"></div>
+      </div>
     </header>
 
     <div class="subtitle-row">
@@ -317,10 +392,8 @@
 
     <div class="feed" id="feed">
       <div class="row head">
-        <div>Consumer</div>
-        <div>Provider</div>
-        <div style="text-align:right">Amount</div>
-        <div style="text-align:right">When</div>
+        <div>Consumer</div><div>Provider</div>
+        <div style="text-align:right">Amount</div><div style="text-align:right">When</div>
       </div>
     </div>
     <p class="footnote">"Trigger agent purchase" calls a real backend endpoint that submits an actual transaction to <code>ArikeLedger.recordSettlement()</code> on Arc Testnet, paid in testnet USDC — a real onchain action, not a fake row, once the demo wallet is configured (see <code>CIRCLE_SETUP.md</code>). If that wallet isn't set up yet, it falls back to an illustrative run and says so explicitly.</p>
@@ -330,58 +403,192 @@
       <div class="action-card">
         <h3>Swap</h3>
         <p>Exchange USDC ↔ EURC on Arc Testnet. Estimates a route first.</p>
-        <input id="swapAddress" placeholder="Wallet address (0x...)" />
-        <select id="swapTokenIn">
-          <option value="USDC">USDC</option>
-          <option value="EURC">EURC</option>
-        </select>
-        <select id="swapTokenOut">
-          <option value="EURC">EURC</option>
-          <option value="USDC">USDC</option>
-        </select>
-        <input id="swapAmount" placeholder="Amount (e.g. 1.00)" value="1.00" />
-        <button class="btn-sm" id="swapBtn">Run Swap</button>
-        <div class="action-result" id="swapResult"></div>
+        <div id="swapLocked" class="locked-note">Connect a wallet above to try this</div>
+        <div id="swapForm" style="display:none">
+          <div class="toggle-group" id="swapTokenInGroup">
+            <button class="toggle-btn active" data-val="USDC">USDC</button>
+            <button class="toggle-btn" data-val="EURC">EURC</button>
+          </div>
+          <div class="toggle-group" id="swapTokenOutGroup">
+            <button class="toggle-btn" data-val="USDC">USDC</button>
+            <button class="toggle-btn active" data-val="EURC">EURC</button>
+          </div>
+          <div class="field">
+            <div class="flbl">Amount <span class="bal-hint" id="swapBalHint"></span></div>
+            <div class="amt-row">
+              <input id="swapAmount" placeholder="0.00" value="1.00" />
+              <button class="max-btn" id="swapMaxBtn">MAX</button>
+            </div>
+          </div>
+          <button class="btn-sm" id="swapBtn">Run Swap</button>
+          <div class="action-result" id="swapResult"></div>
+        </div>
       </div>
 
       <div class="action-card">
         <h3>Send</h3>
         <p>Direct wallet-to-wallet USDC transfer on Arc Testnet.</p>
-        <input id="sendFrom" placeholder="From address (0x...)" />
-        <input id="sendTo" placeholder="To address (0x...)" />
-        <input id="sendAmount" placeholder="Amount (e.g. 1.00)" value="1.00" />
-        <button class="btn-sm" id="sendBtn">Run Send</button>
-        <div class="action-result" id="sendResult"></div>
+        <div id="sendLocked" class="locked-note">Connect a wallet above to try this</div>
+        <div id="sendForm" style="display:none">
+          <div class="field">
+            <div class="flbl">To address</div>
+            <input id="sendTo" placeholder="0x..." />
+          </div>
+          <div class="field">
+            <div class="flbl">Amount <span class="bal-hint" id="sendBalHint"></span></div>
+            <div class="amt-row">
+              <input id="sendAmount" placeholder="0.00" value="1.00" />
+              <button class="max-btn" id="sendMaxBtn">MAX</button>
+            </div>
+          </div>
+          <button class="btn-sm" id="sendBtn">Run Send</button>
+          <div class="action-result" id="sendResult"></div>
+        </div>
       </div>
 
       <div class="action-card">
         <h3>Bridge</h3>
         <p>CCTP V2 — move USDC from another testnet onto Arc. Needs a source-chain balance.</p>
-        <input id="bridgeAddress" placeholder="Wallet address (0x...)" />
-        <select id="bridgeFromChain">
-          <option value="Base_Sepolia">Base Sepolia</option>
-          <option value="Ethereum_Sepolia">Ethereum Sepolia</option>
-          <option value="Avalanche_Fuji">Avalanche Fuji</option>
-        </select>
-        <input id="bridgeAmount" placeholder="Amount (e.g. 5.00)" value="5.00" />
-        <button class="btn-sm" id="bridgeBtn">Run Bridge</button>
-        <div class="action-result" id="bridgeResult"></div>
+        <div id="bridgeLocked" class="locked-note">Connect a wallet above to try this</div>
+        <div id="bridgeForm" style="display:none">
+          <div class="toggle-group" id="bridgeChainGroup">
+            <button class="toggle-btn active" data-val="Base_Sepolia">Base</button>
+            <button class="toggle-btn" data-val="Ethereum_Sepolia">Ethereum</button>
+            <button class="toggle-btn" data-val="Avalanche_Fuji">Avalanche</button>
+          </div>
+          <div class="field">
+            <div class="flbl">Amount</div>
+            <input id="bridgeAmount" placeholder="0.00" value="5.00" />
+          </div>
+          <button class="btn-sm" id="bridgeBtn">Run Bridge</button>
+          <div class="action-result" id="bridgeResult"></div>
+        </div>
       </div>
 
       <div class="action-card">
         <h3>Unified Balance</h3>
         <p>Check ARIKE's chain-abstracted USDC balance (read-only, no inputs needed).</p>
-        <button class="btn-sm" id="balanceBtn">Check Balance</button>
-        <div class="action-result" id="balanceResult"></div>
+        <div id="balanceLocked" class="locked-note">Connect a wallet above to try this</div>
+        <div id="balanceForm" style="display:none">
+          <button class="btn-sm" id="balanceBtn">Check Balance</button>
+          <div class="action-result" id="balanceResult"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="connectModal">
+    <div class="modal">
+      <h3>Connect a wallet</h3>
+      <p>Paste the Circle-managed wallet address (0x...) you want to act through. This isn't a signing wallet like MetaMask — ARIKE's wallets are Circle-managed, so this just tells the console which address to use.</p>
+      <input id="connectInput" placeholder="0x..." />
+      <div class="modal-actions">
+        <button class="modal-cancel" id="connectCancel">Cancel</button>
+        <button class="btn" id="connectConfirm">Connect</button>
       </div>
     </div>
   </div>
 
   <script>
+    const SUN = 'M12 3v2m0 14v2M5 5l1.4 1.4M17.6 17.6L19 19M3 12h2m14 0h2M5 19l1.4-1.4M17.6 6.4L19 5M12 8a4 4 0 100 8 4 4 0 000-8z';
+    const MOON = 'M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z';
+
+    function applyTheme(theme) {
+      document.documentElement.setAttribute('data-theme', theme);
+      localStorage.setItem('arike_theme', theme);
+      document.getElementById('themeIcon').innerHTML = `<path d="${theme === 'light' ? SUN : MOON}" />`;
+    }
+    let currentTheme = localStorage.getItem('arike_theme') || 'dark';
+    applyTheme(currentTheme);
+    document.getElementById('themeToggle').addEventListener('click', () => {
+      currentTheme = currentTheme === 'light' ? 'dark' : 'light';
+      applyTheme(currentTheme);
+    });
+
+    function shortenAddr(addr) { return addr ? addr.slice(0, 6) + '…' + addr.slice(-4) : ''; }
+    function getWallet() { return localStorage.getItem('arike_wallet') || ''; }
+
+    function renderWalletArea() {
+      const addr = getWallet();
+      const area = document.getElementById('walletArea');
+      if (addr) {
+        area.innerHTML = `<div class="wallet-pill">${shortenAddr(addr)}<button id="disconnectBtn" title="Disconnect">×</button></div>`;
+        document.getElementById('disconnectBtn').addEventListener('click', () => {
+          localStorage.removeItem('arike_wallet');
+          renderWalletArea();
+          updateFormLocks();
+        });
+      } else {
+        area.innerHTML = `<button class="connect-btn" id="connectBtn">Connect</button>`;
+        document.getElementById('connectBtn').addEventListener('click', () => {
+          document.getElementById('connectModal').classList.add('show');
+          document.getElementById('connectInput').value = '';
+          document.getElementById('connectInput').focus();
+        });
+      }
+    }
+
+    function updateFormLocks() {
+      const connected = !!getWallet();
+      [['swapLocked', 'swapForm'], ['sendLocked', 'sendForm'], ['bridgeLocked', 'bridgeForm'], ['balanceLocked', 'balanceForm']]
+        .forEach(([lockedId, formId]) => {
+          document.getElementById(lockedId).style.display = connected ? 'none' : 'block';
+          document.getElementById(formId).style.display = connected ? 'block' : 'none';
+        });
+      if (connected) fetchBalanceHint();
+    }
+
+    document.getElementById('connectCancel').addEventListener('click', () => {
+      document.getElementById('connectModal').classList.remove('show');
+    });
+    document.getElementById('connectConfirm').addEventListener('click', () => {
+      const val = document.getElementById('connectInput').value.trim();
+      if (!/^0x[0-9a-fA-F]{40}$/.test(val)) {
+        document.getElementById('connectInput').style.borderColor = 'var(--danger)';
+        return;
+      }
+      localStorage.setItem('arike_wallet', val);
+      document.getElementById('connectModal').classList.remove('show');
+      renderWalletArea();
+      updateFormLocks();
+    });
+
+    async function fetchBalanceHint() {
+      try {
+        const res = await fetch('/api/balance');
+        const data = await res.json();
+        const hint = data.ok ? 'balance loaded' : '';
+        document.getElementById('swapBalHint').textContent = hint;
+        document.getElementById('sendBalHint').textContent = hint;
+      } catch (e) { /* leave hints blank */ }
+    }
+
+    document.getElementById('swapMaxBtn').addEventListener('click', () => {
+      alert('Check the Unified Balance panel below for your exact spendable amount, then enter it here.');
+    });
+    document.getElementById('sendMaxBtn').addEventListener('click', () => {
+      alert('Check the Unified Balance panel below for your exact spendable amount, then enter it here.');
+    });
+
+    function wireToggleGroup(groupId) {
+      const group = document.getElementById(groupId);
+      group.querySelectorAll('.toggle-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          group.querySelectorAll('.toggle-btn').forEach((b) => b.classList.remove('active'));
+          btn.classList.add('active');
+        });
+      });
+    }
+    wireToggleGroup('swapTokenInGroup');
+    wireToggleGroup('swapTokenOutGroup');
+    wireToggleGroup('bridgeChainGroup');
+    function activeVal(groupId) { return document.getElementById(groupId).querySelector('.toggle-btn.active').dataset.val; }
+
+    renderWalletArea();
+    updateFormLocks();
+
     let simulatedRows = [];
-
     function rand4() { return Math.random().toString(16).slice(2, 6); }
-
     const SERVICE_POOL = [
       { name: "Port Congestion Index", provider: "0xArikeProvider" + rand4(), price: [0.0015, 0.0025] },
       { name: "FX Rate Oracle", provider: "0xFxOracle" + rand4(), price: [0.0008, 0.0015] },
@@ -395,7 +602,6 @@
       if (addr.length <= 14) return addr;
       return addr.slice(0, 8) + "…" + addr.slice(-4);
     }
-
     function timeAgo(iso) {
       const diff = Math.max(0, Date.now() - new Date(iso).getTime());
       const s = Math.floor(diff / 1000);
@@ -404,7 +610,6 @@
       if (m < 60) return m + "m ago";
       return Math.floor(m / 60) + "h ago";
     }
-
     function sleep(ms) { return new Promise((r) => setTimeout(r, ms)); }
 
     async function logLine(text, done) {
@@ -420,16 +625,13 @@
     async function runSimulation() {
       const btn = document.getElementById("simulateBtn");
       btn.disabled = true;
-
       const log = document.getElementById("agentLog");
       log.classList.add("active");
       log.innerHTML = "";
-
       await logLine("Submitting real transaction to ArikeLedger on Arc Testnet...");
       try {
         const res = await fetch("/api/simulate", { method: "POST" });
         const data = await res.json();
-
         if (res.ok && data.real) {
           await logLine(`Paid ${data.amountUsdc} USDC to ${data.provider} via createContractExecutionTransaction...`);
           await sleep(400);
@@ -441,7 +643,6 @@
           btn.disabled = false;
           return;
         }
-
         if (res.status === 503) {
           await logLine(`Live demo wallet not configured yet — showing an illustrative run instead.`);
         } else {
@@ -450,7 +651,6 @@
       } catch (err) {
         await logLine(`Couldn't reach the backend — showing an illustrative run instead.`);
       }
-
       await sleep(400);
       await runIllustrativeSimulation();
       btn.disabled = false;
@@ -459,7 +659,6 @@
     async function runIllustrativeSimulation() {
       const service = SERVICE_POOL[Math.floor(Math.random() * SERVICE_POOL.length)];
       const price = (service.price[0] + Math.random() * (service.price[1] - service.price[0])).toFixed(6);
-
       await logLine("Deciding what data is needed for the current goal...");
       await sleep(500);
       await logLine(`Searching Circle Agent Marketplace for "${service.name.toLowerCase()}"...`);
@@ -469,48 +668,34 @@
       await logLine(`(Illustrative) would pay ${price} USDC via Nanopayments (x402)...`);
       await sleep(700);
       await logLine(`This row is illustrative, not an onchain transaction — see the footnote below.`, true);
-
-      simulatedRows.unshift({
-        consumer: CONSUMER_ADDR,
-        provider: service.provider,
-        amountUsdc: price,
-        timestamp: new Date().toISOString(),
-      });
-
+      simulatedRows.unshift({ consumer: CONSUMER_ADDR, provider: service.provider, amountUsdc: price, timestamp: new Date().toISOString() });
       render();
     }
 
     function render() {
       const feed = document.getElementById("feed");
       feed.querySelectorAll(".row:not(.head)").forEach((r) => r.remove());
-
       const all = [...simulatedRows, ...(window.__fetchedSettlements || [])];
-
       if (!all.length) {
         const empty = document.createElement("div");
         empty.className = "empty";
         empty.textContent = "No settlements yet — try the Trigger button above, or run the consumer agent locally.";
         feed.appendChild(empty);
       }
-
       let total = 0;
       const providers = new Set();
-
       all.forEach((s, i) => {
         total += parseFloat(s.amountUsdc);
         providers.add(s.provider);
-
         const row = document.createElement("div");
         row.className = "row" + (i === 0 ? " new" : "");
         row.innerHTML = `
           <div class="addr">${shorten(s.consumer)}</div>
           <div class="addr">${shorten(s.provider)}</div>
           <div class="amount">${parseFloat(s.amountUsdc).toFixed(4)}</div>
-          <div class="time">${timeAgo(s.timestamp)}</div>
-        `;
+          <div class="time">${timeAgo(s.timestamp)}</div>`;
         feed.appendChild(row);
       });
-
       document.getElementById("statCount").textContent = all.length;
       document.getElementById("statTotal").textContent = total.toFixed(4);
       document.getElementById("statProviders").textContent = providers.size;
@@ -528,13 +713,10 @@
         console.error(err);
       }
     }
-
     document.getElementById("simulateBtn").addEventListener("click", runSimulation);
     refresh();
     setInterval(refresh, 4000);
-  </script>
 
-  <script>
     async function runAction(btnId, resultId, fn) {
       const btn = document.getElementById(btnId);
       const resultEl = document.getElementById(resultId);
@@ -553,47 +735,39 @@
         btn.disabled = false;
       }
     }
-
     async function postJSON(url, body) {
-      const res = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
+      const res = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
       return res.json();
     }
 
     document.getElementById("swapBtn").addEventListener("click", () =>
       runAction("swapBtn", "swapResult", () =>
         postJSON("/api/swap", {
-          address: document.getElementById("swapAddress").value,
-          tokenIn: document.getElementById("swapTokenIn").value,
-          tokenOut: document.getElementById("swapTokenOut").value,
+          address: getWallet(),
+          tokenIn: activeVal('swapTokenInGroup'),
+          tokenOut: activeVal('swapTokenOutGroup'),
           amountIn: document.getElementById("swapAmount").value,
         })
       )
     );
-
     document.getElementById("sendBtn").addEventListener("click", () =>
       runAction("sendBtn", "sendResult", () =>
         postJSON("/api/send", {
-          fromAddress: document.getElementById("sendFrom").value,
+          fromAddress: getWallet(),
           toAddress: document.getElementById("sendTo").value,
           amount: document.getElementById("sendAmount").value,
         })
       )
     );
-
     document.getElementById("bridgeBtn").addEventListener("click", () =>
       runAction("bridgeBtn", "bridgeResult", () =>
         postJSON("/api/bridge", {
-          address: document.getElementById("bridgeAddress").value,
-          fromChain: document.getElementById("bridgeFromChain").value,
+          address: getWallet(),
+          fromChain: activeVal('bridgeChainGroup'),
           amountUsdc: document.getElementById("bridgeAmount").value,
         })
       )
     );
-
     document.getElementById("balanceBtn").addEventListener("click", () =>
       runAction("balanceBtn", "balanceResult", () => fetch("/api/balance").then((r) => r.json()))
     );
