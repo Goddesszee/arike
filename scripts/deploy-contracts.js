@@ -50,7 +50,7 @@ async function deploy(name, constructorParameters = []) {
   console.log(`Deploying ${name} to Arc Testnet...`);
   const response = await contractsClient.deployContract({
     name: name, // must be alphanumeric [a-zA-Z0-9] per Circle's API — no spaces/hyphens
-    description: `ARIKE agent-to-agent marketplace — ${name}`,
+    description: `ARIKE agent-to-agent marketplace - ${name}`,
     blockchain: "ARC-TESTNET",
     walletId: WALLET_ID,
     abiJson: JSON.stringify(abi, null, 2),
