@@ -12,14 +12,18 @@
     "compile": "node scripts/compile.js",
     "deploy:contracts": "node scripts/deploy-contracts.js",
     "debug:deploy": "node scripts/debug-deploy-raw.js",
-    "create:wallet": "node scripts/create-wallet.js"
+    "create:wallet": "node scripts/create-wallet.js",
+    "try:swap": "tsx scripts/try-swap.ts",
+    "try:bridge": "tsx scripts/try-bridge.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.65.0",
+    "@circle-fin/adapter-circle-wallets": "^1.4.2",
     "@circle-fin/adapter-viem-v2": "^1.13.0",
     "@circle-fin/bridge-kit": "^1.12.0",
     "@circle-fin/developer-controlled-wallets": "^10.8.0",
     "@circle-fin/smart-contract-platform": "^10.8.0",
+    "@circle-fin/swap-kit": "^1.3.2",
     "dotenv": "^16.4.5",
     "express": "^4.21.2",
     "permissionless": "^0.3.7",
