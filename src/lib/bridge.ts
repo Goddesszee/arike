@@ -1,6 +1,6 @@
 /**
- * ARIKE Bridge (CCTP V2 via Circle Bridge Kit)
- * -----------------------------------------------
+ * ARIKE Bridge (CCTP V2 via Circle Bridge Kit + Circle Wallets adapter)
+ * -------------------------------------------------------------------------
  * Lets ARIKE agents move USDC onto Arc Testnet from another chain before
  * transacting. Two scenarios this covers:
  *
@@ -9,17 +9,16 @@
  *   2. A provider agent wants its earnings consolidated on Arc regardless of
  *      which chain a paying consumer originated from.
  *
- * Uses Circle's official Bridge Kit, which wraps CCTPv2 (token approval,
- * burn, attestation, mint) into a single `kit.bridge()` call.
+ * Uses createCircleWalletsAdapter so bridging happens through the same
+ * Circle-managed wallet as every other ARIKE module — no raw private key
+ * ever enters this codebase (earlier draft used a raw private-key adapter;
+ * this is the corrected, consistent version).
+ *
  * Docs: https://developers.circle.com/bridge-kit
- * Verified against the installed package's type definitions (bridge-kit 1.12,
- * adapter-viem-v2 1.13) — API confirmed: `new BridgeKit()`,
- * `createViemAdapterFromPrivateKey`, chain identifiers as string literals
- * ('Arc_Testnet' family exposed via the `ArcTestnet` constant).
  */
 import "dotenv/config";
 import { BridgeKit, ArcTestnet, BaseSepolia, EthereumSepolia, AvalancheFuji } from "@circle-fin/bridge-kit";
-import { createViemAdapterFromPrivateKey } from "@circle-fin/adapter-viem-v2";
+import { createCircleWalletsAdapter } from "@circle-fin/adapter-circle-wallets";
 
 const SOURCE_CHAINS = {
   Base_Sepolia: BaseSepolia,
@@ -30,22 +29,32 @@ const SOURCE_CHAINS = {
 export interface BridgeParams {
   fromChain: keyof typeof SOURCE_CHAINS;
   amountUsdc: string; // e.g. "5.00"
-  privateKey: `0x${string}`; // use a secrets manager in real use, not plain env
+  address: `0x${string}`; // the Circle-managed wallet's onchain address, same on every EVM chain
+}
+
+function getAdapter() {
+  if (!process.env.CIRCLE_API_KEY || !process.env.CIRCLE_ENTITY_SECRET) {
+    throw new Error("Set CIRCLE_API_KEY and CIRCLE_ENTITY_SECRET in .env first.");
+  }
+  return createCircleWalletsAdapter({
+    apiKey: process.env.CIRCLE_API_KEY,
+    entitySecret: process.env.CIRCLE_ENTITY_SECRET,
+  });
 }
 
 /**
- * Bridges USDC from another chain to Arc Testnet using a single adapter
- * that signs on both sides (same private key controls both addresses).
+ * Bridges USDC from another chain to Arc Testnet. Same Circle-managed
+ * wallet address signs on both sides.
  */
-export async function bridgeToArc({ fromChain, amountUsdc, privateKey }: BridgeParams) {
-  const adapter = createViemAdapterFromPrivateKey({ privateKey });
+export async function bridgeToArc({ fromChain, amountUsdc, address }: BridgeParams) {
+  const adapter = getAdapter();
   const kit = new BridgeKit();
 
   kit.on("*", (payload: any) => console.log(`[bridge] ${payload.method ?? "step"}`));
 
   const result = await kit.bridge({
-    from: { adapter, chain: SOURCE_CHAINS[fromChain] },
-    to: { adapter, chain: ArcTestnet },
+    from: { adapter, chain: SOURCE_CHAINS[fromChain], address },
+    to: { adapter, chain: ArcTestnet, address },
     amount: amountUsdc,
   });
 
@@ -61,14 +70,14 @@ export async function bridgeToArc({ fromChain, amountUsdc, privateKey }: BridgeP
 export async function bridgeToArcRecipient({
   fromChain,
   amountUsdc,
-  privateKey,
+  address,
   recipientAddress,
 }: BridgeParams & { recipientAddress: `0x${string}` }) {
-  const adapter = createViemAdapterFromPrivateKey({ privateKey });
+  const adapter = getAdapter();
   const kit = new BridgeKit();
 
   const result = await kit.bridge({
-    from: { adapter, chain: SOURCE_CHAINS[fromChain] },
+    from: { adapter, chain: SOURCE_CHAINS[fromChain], address },
     to: { recipientAddress, chain: ArcTestnet, useForwarder: true },
     amount: amountUsdc,
   });
