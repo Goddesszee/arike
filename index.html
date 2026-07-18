@@ -217,15 +217,44 @@
     background: var(--surface);
     border: 1px solid var(--border2);
     border-radius: var(--radius);
-    padding: 18px 20px; margin-bottom: 24px;
-    font-family: 'SF Mono', Consolas, monospace;
-    font-size: 13px; color: var(--text2); line-height: 1.9;
+    margin-bottom: 24px;
+    overflow: hidden;
+    box-shadow: var(--shell-shadow);
   }
   .agent-log.active { display: block; animation: up .25s ease both; }
-  .agent-log .line { opacity: 0; animation: appear .3s forwards; }
+  .agent-log-header {
+    display: flex; align-items: center; gap: 8px;
+    padding: 12px 18px;
+    background: rgba(128,128,128,.04);
+    border-bottom: 1px solid var(--border);
+    font-size: 11px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .1em;
+    color: var(--text3);
+  }
+  .agent-log-header .live-dot-sm {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--accent3);
+    box-shadow: 0 0 6px var(--accent3);
+    animation: pulse 2s ease infinite;
+  }
+  .agent-log-body { padding: 6px 18px 14px; }
+  .agent-log .line {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 7px 0;
+    font-family: 'SF Mono', Consolas, monospace;
+    font-size: 12.5px; color: var(--text2); line-height: 1.5;
+    opacity: 0; animation: appear .3s forwards;
+    border-bottom: 1px solid var(--border);
+  }
+  .agent-log .line:last-child { border-bottom: none; }
+  .agent-log .line::before {
+    content: '›'; color: var(--text3); flex-shrink: 0;
+    font-family: inherit; margin-top: -1px;
+  }
   @keyframes appear { to { opacity: 1; } }
   @keyframes up { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
-  .agent-log .done { color: var(--accent4); }
+  .agent-log .done { color: var(--accent4); font-weight: 600; }
+  .agent-log .done::before { content: '✓'; color: var(--accent4); }
 
   .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 28px; }
   .stat {
@@ -565,7 +594,10 @@
       <button class="btn" id="simulateBtn">Trigger agent purchase</button>
     </div>
 
-    <div class="agent-log" id="agentLog"></div>
+    <div class="agent-log" id="agentLog">
+      <div class="agent-log-header"><span class="live-dot-sm"></span>Agent activity</div>
+      <div class="agent-log-body" id="agentLogBody"></div>
+    </div>
 
     <div class="stats">
       <div class="stat"><div class="label">Total Settlements</div><div class="value" id="statCount">–</div></div>
@@ -1200,7 +1232,7 @@
     function sleep(ms) { return new Promise((r) => setTimeout(r, ms)); }
 
     async function logLine(text, done) {
-      const log = document.getElementById("agentLog");
+      const log = document.getElementById("agentLogBody");
       const line = document.createElement("div");
       line.className = "line" + (done ? " done" : "");
       line.textContent = text;
@@ -1214,7 +1246,7 @@
       btn.disabled = true;
       const log = document.getElementById("agentLog");
       log.classList.add("active");
-      log.innerHTML = "";
+      document.getElementById("agentLogBody").innerHTML = "";
       await logLine("Submitting real transaction to ArikeLedger on Arc Testnet...");
       try {
         const res = await fetch("/api/simulate", { method: "POST" });
