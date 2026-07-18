@@ -77,6 +77,45 @@
 
   .header-right { display: flex; align-items: center; gap: 10px; }
 
+  .main-nav { display: flex; align-items: center; gap: 4px; }
+  .nav-link {
+    background: transparent; border: none; color: var(--text2);
+    font-family: inherit; font-size: 13.5px; font-weight: 600;
+    padding: 8px 12px; border-radius: 8px; cursor: pointer;
+    display: flex; align-items: center; gap: 4px;
+    text-decoration: none;
+  }
+  .nav-link:hover { color: var(--text); background: rgba(128,128,128,.08); }
+  .nav-link.active { color: var(--accent3); }
+  .nav-dropdown { position: relative; }
+  .nav-dropdown-menu {
+    display: none;
+    position: absolute; top: calc(100% + 6px); left: 0;
+    background: var(--bg);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius);
+    padding: 8px;
+    min-width: 220px;
+    box-shadow: 0 12px 32px rgba(0,0,0,.4);
+    z-index: 50;
+  }
+  .nav-dropdown-menu.show { display: block; }
+  .nav-dropdown-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 10px; border-radius: 8px;
+    text-decoration: none; color: var(--text);
+    cursor: pointer;
+  }
+  .nav-dropdown-item:hover { background: rgba(14,165,233,.1); }
+  .ndi-icon {
+    width: 30px; height: 30px; border-radius: 8px;
+    background: rgba(14,165,233,.14);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; flex-shrink: 0;
+  }
+  .ndi-label { font-size: 13px; font-weight: 700; }
+  .ndi-sub { font-size: 11px; color: var(--text3); margin-top: 1px; }
+
   .icon-btn {
     width: 34px; height: 34px;
     border-radius: 9px;
@@ -484,7 +523,7 @@
 </style>
 </head>
 <body>
-  <div class="wrap">
+  <div class="wrap" id="top">
     <header>
       <div class="brand">
         <div class="logo">
@@ -494,6 +533,24 @@
         </div>
         <h1>ARIKE<span> / console</span></h1>
       </div>
+      <nav class="main-nav">
+        <a href="#top" class="nav-link active">Console</a>
+        <div class="nav-dropdown">
+          <button class="nav-link" id="tradeNavBtn" type="button">Trade <span class="chev">▾</span></button>
+          <div class="nav-dropdown-menu" id="tradeDropdownMenu">
+            <a href="#swapSection" class="nav-dropdown-item">
+              <span class="ndi-icon">⇄</span>
+              <span><span class="ndi-label">Swap</span><div class="ndi-sub">USDC ↔ EURC on Arc</div></span>
+            </a>
+            <a href="#bridgeSection" class="nav-dropdown-item">
+              <span class="ndi-icon">🌉</span>
+              <span><span class="ndi-label">Bridge</span><div class="ndi-sub">Cross-chain via CCTP</div></span>
+            </a>
+          </div>
+        </div>
+        <a href="#sendSection" class="nav-link">Send</a>
+        <a href="#agentSection" class="nav-link">Agent</a>
+      </nav>
       <div class="header-right">
         <div class="net-pill" id="statusPill">connecting…</div>
         <button class="icon-btn" id="themeToggle" title="Toggle theme">
@@ -526,7 +583,7 @@
 
     <div class="section-title">App Kit — try each capability directly</div>
     <div class="action-grid">
-      <div class="action-card">
+      <div class="action-card" id="swapSection">
         <h3>Swap</h3>
         <p>Exchange USDC ↔ EURC on Arc Testnet. Estimates a route first.</p>
         <div id="swapLocked" class="locked-note">Log in above to try this</div>
@@ -563,7 +620,7 @@
         </div>
       </div>
 
-      <div class="action-card">
+      <div class="action-card" id="sendSection">
         <h3>Send</h3>
         <p>Direct wallet-to-wallet transfer on Arc Testnet.</p>
         <div id="sendLocked" class="locked-note">Log in above to try this</div>
@@ -597,7 +654,7 @@
         </div>
       </div>
 
-      <div class="action-card">
+      <div class="action-card" id="bridgeSection">
         <h3>Bridge</h3>
         <p>CCTP V2 — move USDC from another testnet onto Arc. Needs a source-chain balance.</p>
         <div id="bridgeLocked" class="locked-note">Log in above to try this</div>
@@ -647,6 +704,24 @@
         </div>
       </div>
     </div>
+
+    <div class="section-title" id="agentSection">What the agent can do</div>
+    <div class="action-card" style="margin-bottom: 24px;">
+      <p style="margin-bottom: 14px; color: var(--text2); font-size: 13.5px; line-height: 1.7;">
+        The <strong style="color:var(--text)">consumer agent</strong> takes a goal in plain English
+        (e.g. "plan the cheapest, lowest-risk week to ship a container from Lagos to Rotterdam"),
+        decides what data it needs, searches the Circle Agent Marketplace, checks each candidate
+        provider's real onchain track record before choosing between them, pays autonomously via
+        Nanopayments, records every real settlement onchain, then synthesizes a recommendation —
+        no human approves any individual payment.
+      </p>
+      <p style="color: var(--text2); font-size: 13.5px; line-height: 1.7;">
+        The <strong style="color:var(--text)">provider agent</strong> hosts three real paid data
+        services (Port Congestion Index, FX Rate Oracle, Weather Risk Feed), each gated by real
+        payment verification — ARIKE's own contribution back to the marketplace, not just a consumer of it.
+      </p>
+    </div>
+
   </div>
 
   <div class="modal-overlay" id="connectModal">
@@ -691,6 +766,22 @@
     document.getElementById('themeToggle').addEventListener('click', () => {
       currentTheme = currentTheme === 'light' ? 'dark' : 'light';
       applyTheme(currentTheme);
+    });
+
+    /* Trade nav dropdown */
+    const tradeNavBtn = document.getElementById('tradeNavBtn');
+    const tradeDropdownMenu = document.getElementById('tradeDropdownMenu');
+    tradeNavBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      tradeDropdownMenu.classList.toggle('show');
+    });
+    document.addEventListener('click', (e) => {
+      if (!tradeDropdownMenu.contains(e.target) && e.target !== tradeNavBtn) {
+        tradeDropdownMenu.classList.remove('show');
+      }
+    });
+    tradeDropdownMenu.querySelectorAll('.nav-dropdown-item').forEach((item) => {
+      item.addEventListener('click', () => tradeDropdownMenu.classList.remove('show'));
     });
 
     function shortenAddr(addr) { return addr ? addr.slice(0, 6) + '…' + addr.slice(-4) : ''; }
