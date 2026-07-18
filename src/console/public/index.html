@@ -1250,10 +1250,10 @@
 
       document.getElementById('swapRateText').textContent = 'Fetching live rate...';
       try {
-        const res = await fetch('/api/quote', {
+        const res = await fetch('/api/swap', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ address: getWallet(), tokenIn, tokenOut, amountIn: String(amount) }),
+          body: JSON.stringify({ address: getWallet(), tokenIn, tokenOut, amountIn: String(amount), estimateOnly: true }),
         });
         const data = await res.json();
         if (data.ok && data.estimate) {
@@ -1310,7 +1310,7 @@
       const el = document.getElementById('bridgeFromBal');
       el.textContent = '…';
       try {
-        const res = await fetch(`/api/chain-balance?address=${getWallet()}&chain=${activeBridgeChain()}`);
+        const res = await fetch(`/api/balance?address=${getWallet()}&chain=${activeBridgeChain()}`);
         const data = await res.json();
         el.textContent = data.ok ? data.balanceUsdc : '0.000000';
       } catch (err) {
@@ -1578,7 +1578,8 @@
 
     document.getElementById("sendBtn").addEventListener("click", () =>
       runAction("sendBtn", "sendResult", () =>
-        postJSON("/api/send", {
+        postJSON("/api/transfer", {
+          type: "send",
           fromAddress: getWallet(),
           toAddress: document.getElementById("sendTo").value,
           amount: document.getElementById("sendAmount").value,
@@ -1588,7 +1589,8 @@
     );
     document.getElementById("bridgeBtn").addEventListener("click", () =>
       runAction("bridgeBtn", "bridgeResult", () =>
-        postJSON("/api/bridge", {
+        postJSON("/api/transfer", {
+          type: "bridge",
           address: getWallet(),
           fromChain: activeBridgeChain(),
           amountUsdc: document.getElementById("bridgeAmount").value,
@@ -1643,10 +1645,11 @@
           btn.disabled = true;
           btn.textContent = 'Paying…';
           try {
-            const res = await fetch('/api/send', {
+            const res = await fetch('/api/transfer', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
+                type: 'send',
                 fromAddress: getWallet(),
                 toAddress: btn.dataset.address,
                 amount: '0.001', // small fixed demo amount, not the illustrative USD price
