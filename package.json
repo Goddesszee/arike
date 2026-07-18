@@ -17,7 +17,8 @@
     "try:swap": "tsx scripts/try-swap.ts",
     "try:bridge": "tsx scripts/try-bridge.ts",
     "try:send": "tsx scripts/try-send.ts",
-    "try:balance": "tsx scripts/try-balance.ts"
+    "try:balance": "tsx scripts/try-balance.ts",
+    "try:paymaster": "tsx scripts/try-paymaster.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.65.0",
