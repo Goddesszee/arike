@@ -19,6 +19,8 @@ import {
   searchServices,
   inspectService,
   payForService,
+  checkProviderReputation,
+  recordSettlementOnLedger,
   isMock,
 } from "../lib/circle-tools.js";
 
@@ -60,6 +62,44 @@ nothing else.`,
   }
 }
 
+const SERVICE_IDS: Record<string, number> = {
+  "Port Congestion Index": 0,
+  "FX Rate Oracle": 1,
+  "Weather Risk Feed": 2,
+};
+
+async function chooseBestProvider(candidates: import("../lib/circle-tools.js").CircleService[]) {
+  if (candidates.length === 1) return candidates[0];
+
+  // The "trust layer": check each candidate's real onchain track record via
+  // ArikeLedger.totalEarnedBy before choosing — not just taking the first
+  // search result. Providers with a real history win; ties/no-history fall
+  // back to cheapest.
+  const withReputation = await Promise.all(
+    candidates.map(async (c) => ({
+      candidate: c,
+      reputation: c.providerAddress ? await checkProviderReputation(c.providerAddress) : null,
+    }))
+  );
+
+  withReputation.sort((a, b) => {
+    const aEarned = a.reputation?.totalEarnedUsdc ?? 0;
+    const bEarned = b.reputation?.totalEarnedUsdc ?? 0;
+    if (aEarned !== bEarned) return bEarned - aEarned; // more history wins
+    return (a.candidate.priceUsdc ?? 0) - (b.candidate.priceUsdc ?? 0); // then cheapest
+  });
+
+  const winner = withReputation[0];
+  if (winner.reputation?.hasHistory) {
+    console.log(
+      `  [ARIKE] chose ${winner.candidate.name} — track record: ${winner.reputation.totalEarnedUsdc.toFixed(4)} USDC earned onchain`
+    );
+  } else {
+    console.log(`  [ARIKE] chose ${winner.candidate.name} — no onchain history yet, picked on price`);
+  }
+  return winner.candidate;
+}
+
 async function acquireData(topics: string[], walletAddress: string): Promise<PaidResult[]> {
   const results: PaidResult[] = [];
 
@@ -69,7 +109,7 @@ async function acquireData(topics: string[], walletAddress: string): Promise<Pai
       console.log(`  [ARIKE] no service found for "${topic}", skipping`);
       continue;
     }
-    const chosen = candidates[0]; // simplest strategy: take top match
+    const chosen = await chooseBestProvider(candidates);
     console.log(`  [ARIKE] found service for "${topic}": ${chosen.url}`);
 
     const terms = await inspectService(chosen.url);
@@ -77,6 +117,21 @@ async function acquireData(topics: string[], walletAddress: string): Promise<Pai
 
     const paid = await payForService(chosen.url, walletAddress, CHAIN, MAX_SPEND_PER_SERVICE);
     console.log(`  [ARIKE] paid ${paid.amountPaidUsdc} USDC -> ${chosen.url}`);
+
+    if (chosen.providerAddress) {
+      const serviceId = SERVICE_IDS[chosen.name ?? ""] ?? 0;
+      const amountMicroUsdc = Math.round(paid.amountPaidUsdc * 1_000_000);
+      const record = await recordSettlementOnLedger({
+        providerAddress: chosen.providerAddress,
+        serviceId,
+        amountMicroUsdc,
+      });
+      if (record.recorded) {
+        console.log(`  [ARIKE] settlement recorded onchain in ArikeLedger`);
+      } else {
+        console.log(`  [ARIKE] settlement not recorded onchain (${record.reason}) — payment itself still succeeded`);
+      }
+    }
 
     results.push({
       service: chosen.name ?? chosen.url,
