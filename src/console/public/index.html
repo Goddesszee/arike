@@ -583,7 +583,13 @@
 
     <div class="section-title">App Kit — try each capability directly</div>
     <div class="action-grid">
-      <div class="action-card" id="swapSection">
+      <div class="action-card" id="noPanelPlaceholder" style="text-align:center; padding: 32px 20px;">
+        <p style="color: var(--text3); font-size: 13.5px; margin: 0;">
+          Pick <strong style="color:var(--text2)">Trade</strong> or <strong style="color:var(--text2)">Send</strong>
+          from the nav above to open a panel.
+        </p>
+      </div>
+      <div class="action-card" id="swapSection" style="display:none">
         <h3>Swap</h3>
         <p>Exchange USDC ↔ EURC on Arc Testnet. Estimates a route first.</p>
         <div id="swapLocked" class="locked-note">Log in above to try this</div>
@@ -620,7 +626,7 @@
         </div>
       </div>
 
-      <div class="action-card" id="sendSection">
+      <div class="action-card" id="sendSection" style="display:none">
         <h3>Send</h3>
         <p>Direct wallet-to-wallet transfer on Arc Testnet.</p>
         <div id="sendLocked" class="locked-note">Log in above to try this</div>
@@ -654,7 +660,7 @@
         </div>
       </div>
 
-      <div class="action-card" id="bridgeSection">
+      <div class="action-card" id="bridgeSection" style="display:none">
         <h3>Bridge</h3>
         <p>CCTP V2 — move USDC from another testnet onto Arc. Needs a source-chain balance.</p>
         <div id="bridgeLocked" class="locked-note">Log in above to try this</div>
@@ -780,8 +786,37 @@
         tradeDropdownMenu.classList.remove('show');
       }
     });
-    tradeDropdownMenu.querySelectorAll('.nav-dropdown-item').forEach((item) => {
-      item.addEventListener('click', () => tradeDropdownMenu.classList.remove('show'));
+
+    /* Panel switcher: only one of Swap/Send/Bridge visible at a time */
+    const PANEL_IDS = { swap: 'swapSection', send: 'sendSection', bridge: 'bridgeSection' };
+    function showPanel(name) {
+      document.getElementById('noPanelPlaceholder').style.display = 'none';
+      Object.entries(PANEL_IDS).forEach(([key, id]) => {
+        document.getElementById(id).style.display = key === name ? 'block' : 'none';
+      });
+      document.querySelectorAll('.nav-link').forEach((el) => el.classList.remove('active'));
+      const navTarget = name === 'send' ? document.querySelector('a[href="#sendSection"]') : tradeNavBtn;
+      if (navTarget) navTarget.classList.add('active');
+      document.getElementById(PANEL_IDS[name]).scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    document.querySelectorAll('.nav-dropdown-item').forEach((item) => {
+      item.addEventListener('click', (e) => {
+        e.preventDefault();
+        tradeDropdownMenu.classList.remove('show');
+        const panel = item.getAttribute('href') === '#swapSection' ? 'swap' : 'bridge';
+        showPanel(panel);
+      });
+    });
+    document.querySelector('a[href="#sendSection"]').addEventListener('click', (e) => {
+      e.preventDefault();
+      showPanel('send');
+    });
+    document.querySelector('a[href="#top"]').addEventListener('click', (e) => {
+      e.preventDefault();
+      document.querySelectorAll('.nav-link').forEach((el) => el.classList.remove('active'));
+      document.querySelector('a[href="#top"]').classList.add('active');
+      document.getElementById('top').scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
 
     function shortenAddr(addr) { return addr ? addr.slice(0, 6) + '…' + addr.slice(-4) : ''; }
