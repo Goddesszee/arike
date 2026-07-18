@@ -94,7 +94,12 @@ export async function spendUSDC({ toChain, address, amount }: SpendUSDCParams) {
   return result;
 }
 
-/** Check ARIKE's unified USDC balance — queries across every chain the adapter's address holds a deposit on. */
+/**
+ * Check ARIKE's unified balance. Note: Circle's Unified Balance / Gateway
+ * product only supports USDC at the protocol level (confirmed against the
+ * SDK's own SUPPORTED_TOKENS list) — there's no EURC variant to query, this
+ * isn't a gap in ARIKE's code.
+ */
 export async function getUnifiedBalance() {
   const context = getContext();
   const adapter = getAdapter();
