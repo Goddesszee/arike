@@ -291,6 +291,83 @@
     font-size: 11px; color: var(--text3); line-height: 1.5;
   }
 
+  .chat-panel {
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius);
+    overflow: hidden;
+    margin-bottom: 24px;
+    box-shadow: var(--shell-shadow);
+  }
+  .chat-header {
+    display: flex; align-items: center; gap: 10px;
+    padding: 12px 16px; border-bottom: 1px solid var(--border);
+  }
+  .chat-header-icon {
+    width: 28px; height: 28px; border-radius: 8px;
+    background: rgba(14,165,233,.12);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; flex-shrink: 0;
+  }
+  .chat-header-title { font-weight: 700; font-size: 14px; }
+  .chat-header-sub { margin-left: auto; font-size: 11px; color: var(--text3); }
+  .chat-body {
+    padding: 16px; min-height: 140px; max-height: 380px; overflow-y: auto;
+    display: flex; flex-direction: column; gap: 12px;
+  }
+  .chat-bubble {
+    padding: 9px 13px; border-radius: 14px; font-size: 13px; line-height: 1.5;
+    max-width: 85%;
+  }
+  .chat-bubble.user {
+    align-self: flex-end;
+    background: rgba(14,165,233,.14); color: var(--accent3);
+    border-radius: 14px 14px 3px 14px;
+  }
+  .chat-bubble.assistant {
+    align-self: flex-start;
+    background: var(--card2); border: 1px solid var(--border);
+    border-radius: 14px 14px 14px 3px;
+    color: var(--text);
+  }
+  .chat-empty { color: var(--text3); font-size: 12.5px; text-align: center; padding: 20px 0; }
+  .chat-vendors { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; align-self: stretch; }
+  .chat-vendor-card {
+    background: var(--surface); border: 1px solid var(--border2);
+    border-radius: var(--radius-sm); padding: 10px 12px;
+  }
+  .chat-vendor-card.recommended { border-color: var(--accent); }
+  .cvc-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 4px; }
+  .cvc-name { font-size: 13px; font-weight: 700; }
+  .cvc-badge {
+    font-size: 9.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em;
+    background: rgba(14,165,233,.14); color: var(--accent3);
+    padding: 2px 8px; border-radius: 100px;
+  }
+  .cvc-desc { font-size: 11.5px; color: var(--text3); margin-bottom: 8px; }
+  .cvc-bottom { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .cvc-price { font-size: 13px; font-weight: 700; color: var(--accent4); }
+  .cvc-rating { font-size: 11px; color: var(--text3); }
+  .cvc-pay-btn {
+    background: var(--accent); color: #fff; border: none;
+    border-radius: 100px; padding: 6px 14px; font-size: 11.5px; font-weight: 700;
+    cursor: pointer; font-family: inherit;
+  }
+  .cvc-pay-btn:disabled { opacity: .5; cursor: default; }
+  .chat-input-row { display: flex; gap: 8px; padding: 10px 12px; border-top: 1px solid var(--border); }
+  .chat-input-row input {
+    flex: 1; background: var(--surface); border: 1px solid var(--border2);
+    color: var(--text); border-radius: var(--radius-sm); padding: 9px 13px;
+    font-size: 13px; font-family: inherit; outline: none;
+  }
+  .chat-input-row input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(14,165,233,.18); }
+  .chat-send-btn {
+    width: 38px; background: var(--accent); border: none; border-radius: var(--radius-sm);
+    color: #fff; cursor: pointer; font-size: 15px; display:flex; align-items:center; justify-content:center;
+  }
+  .chat-send-btn:disabled { opacity: .5; cursor: default; }
+  .chat-demo-note { font-size: 10.5px; color: var(--text3); padding: 0 16px 10px; }
+
   .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 28px; }
   .stat {
     background: linear-gradient(145deg, var(--surface) 0%, var(--bg) 50%, var(--surface) 100%);
@@ -785,7 +862,24 @@
       </div>
     </div>
 
-    <div class="section-title" id="agentSection">What the agent can do</div>
+    <div class="section-title" id="agentSection">Arike AI</div>
+    <div class="chat-panel">
+      <div class="chat-header">
+        <div class="chat-header-icon">💬</div>
+        <span class="chat-header-title">Arike AI</span>
+        <span class="chat-header-sub">Powered by your agent wallet</span>
+      </div>
+      <div class="chat-body" id="chatBody">
+        <div class="chat-empty" id="chatEmpty">Ask anything — general questions get answered directly; "find me..." or "cheapest..." questions trigger a real paid search.</div>
+      </div>
+      <div class="chat-input-row">
+        <input id="chatInput" placeholder="Ask Arike anything…" />
+        <button class="chat-send-btn" id="chatSendBtn" aria-label="Send">→</button>
+      </div>
+      <p class="chat-demo-note">Vendor results are illustrative examples (no live marketplace plugged in yet) — but "Pay" triggers a real onchain transaction via your wallet.</p>
+    </div>
+
+    <div class="section-title">What the agent can do</div>
     <div class="action-card" style="margin-bottom: 24px;">
       <p style="margin-bottom: 14px; color: var(--text2); font-size: 13.5px; line-height: 1.7;">
         The <strong style="color:var(--text)">consumer agent</strong> takes a goal in plain English
@@ -1501,6 +1595,130 @@
         })
       )
     );
+
+    /* Arike AI chat panel */
+    let chatHistory = [];
+
+    function addChatBubble(role, text) {
+      document.getElementById('chatEmpty')?.remove();
+      const body = document.getElementById('chatBody');
+      const bubble = document.createElement('div');
+      bubble.className = `chat-bubble ${role}`;
+      bubble.textContent = text;
+      body.appendChild(bubble);
+      body.scrollTop = body.scrollHeight;
+      return bubble;
+    }
+
+    function addVendorResults(data) {
+      const body = document.getElementById('chatBody');
+      const wrap = document.createElement('div');
+      wrap.className = 'chat-vendors';
+      data.vendors.forEach((v, i) => {
+        const card = document.createElement('div');
+        card.className = 'chat-vendor-card' + (i === data.recommendedIndex ? ' recommended' : '');
+        card.innerHTML = `
+          <div class="cvc-top">
+            <span class="cvc-name">${v.name}</span>
+            ${i === data.recommendedIndex ? '<span class="cvc-badge">Recommended</span>' : ''}
+          </div>
+          <div class="cvc-desc">${v.description}</div>
+          <div class="cvc-bottom">
+            <span class="cvc-price">$${v.priceUsd}</span>
+            <span class="cvc-rating">★ ${v.rating}/5</span>
+            <button class="cvc-pay-btn" data-address="${v.address}" data-name="${v.name}" data-price="${v.priceUsd}">Pay this one</button>
+          </div>
+        `;
+        wrap.appendChild(card);
+      });
+      body.appendChild(wrap);
+      body.scrollTop = body.scrollHeight;
+
+      wrap.querySelectorAll('.cvc-pay-btn').forEach((btn) => {
+        btn.addEventListener('click', async () => {
+          if (!getWallet()) {
+            addChatBubble('assistant', 'Log in first so the agent has a wallet to pay from.');
+            return;
+          }
+          btn.disabled = true;
+          btn.textContent = 'Paying…';
+          try {
+            const res = await fetch('/api/send', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                fromAddress: getWallet(),
+                toAddress: btn.dataset.address,
+                amount: '0.001', // small fixed demo amount, not the illustrative USD price
+                token: 'USDC',
+              }),
+            });
+            const result = await res.json();
+            if (result.ok) {
+              btn.textContent = 'Paid ✓';
+              addChatBubble('assistant', `Paid ${btn.dataset.name} — real transaction submitted on Arc Testnet.`);
+            } else {
+              btn.disabled = false;
+              btn.textContent = 'Pay this one';
+              addChatBubble('assistant', `Payment failed: ${result.error || 'unknown error'}`);
+            }
+          } catch (err) {
+            btn.disabled = false;
+            btn.textContent = 'Pay this one';
+            addChatBubble('assistant', `Could not reach the backend: ${err.message}`);
+          }
+        });
+      });
+    }
+
+    async function sendChatMessage() {
+      const input = document.getElementById('chatInput');
+      const sendBtn = document.getElementById('chatSendBtn');
+      const message = input.value.trim();
+      if (!message) return;
+
+      addChatBubble('user', message);
+      chatHistory.push({ role: 'user', content: message });
+      input.value = '';
+      input.disabled = true;
+      sendBtn.disabled = true;
+
+      const thinkingBubble = addChatBubble('assistant', 'Thinking…');
+
+      try {
+        const res = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message, history: chatHistory.slice(-8) }),
+        });
+        const data = await res.json();
+        thinkingBubble.remove();
+
+        if (!res.ok || !data.ok) {
+          addChatBubble('assistant', data.message || data.error || 'Something went wrong — try again.');
+          return;
+        }
+
+        addChatBubble('assistant', data.reply);
+        chatHistory.push({ role: 'assistant', content: data.reply });
+
+        if (data.type === 'vendor_search' && data.vendors?.length) {
+          addVendorResults(data);
+        }
+      } catch (err) {
+        thinkingBubble.remove();
+        addChatBubble('assistant', 'Could not reach the backend — try again.');
+      } finally {
+        input.disabled = false;
+        sendBtn.disabled = false;
+        input.focus();
+      }
+    }
+
+    document.getElementById('chatSendBtn').addEventListener('click', sendChatMessage);
+    document.getElementById('chatInput').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') sendChatMessage();
+    });
   </script>
 </body>
 </html>
