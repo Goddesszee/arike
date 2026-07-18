@@ -9,6 +9,10 @@
 import * as esbuild from "esbuild";
 import { polyfillNode } from "esbuild-plugin-polyfill-node";
 import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 async function main() {
   await esbuild.build({
@@ -20,6 +24,14 @@ async function main() {
     outfile: "otp-bundle.js",
     logLevel: "info",
     plugins: [polyfillNode()],
+    alias: {
+      // jsonwebtoken/jws only serve the SDK's social-login (Google/Apple)
+      // JWT parsing path, which ARIKE's email-OTP-only flow never calls —
+      // and the real package crashes when polyfilled for browsers
+      // (Object.create on an undefined prototype from Node's stream/util
+      // internals). Stub it out entirely rather than fight the polyfill.
+      jsonwebtoken: path.join(__dirname, "stub-jsonwebtoken.js"),
+    },
   });
 
   // Keep local dev copy in sync too
