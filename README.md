@@ -9,14 +9,21 @@ Built for the [Encode Build on Arc hackathon](https://www.encodeclub.com/program
 ## What's in this repo
 
 - **`src/consumer/agent.ts`** — the demo centerpiece. Given a goal, this agent
-  decides what data it needs, searches the Circle Agent Marketplace, pays for
-  services via Nanopayments, and synthesizes a recommendation. Fully
-  autonomous — no human clicks approve on any payment.
+  decides what data it needs, searches the Circle Agent Marketplace, checks
+  each candidate provider's **onchain track record** (`ArikeLedger.totalEarnedBy`)
+  before choosing between them, pays via Nanopayments, records the real
+  settlement onchain, and synthesizes a recommendation. Fully autonomous —
+  no human clicks approve on any payment.
 - **`src/provider/server.ts`** — ARIKE's own contribution to the marketplace:
-  a live Port Congestion Index, priced per-call, payable via x402.
+  **three** live data feeds (Port Congestion Index, FX Rate Oracle, Weather
+  Risk Feed), each priced per-call, each payable via x402. Having three
+  distinct services is what gives the consumer agent something real to
+  compare and choose between, not a single hardcoded call.
 - **`src/lib/circle-tools.ts`** — thin wrapper around the real Circle CLI
-  (wallets, gateway, services/nanopayments). Has a `--mock` mode so you can
-  build/demo the orchestration logic before your wallet is funded.
+  (wallets, gateway, services/nanopayments), plus the reputation-check and
+  ledger-recording functions that give the agent a real trust layer. Has a
+  `--mock` mode so you can build/demo the orchestration logic before your
+  wallet is funded.
 
 ## Setup
 
@@ -120,12 +127,12 @@ Wallets are Circle Agent Wallets — no human key management on either side.
 | Nanopayments / x402 | The actual per-call payment rail between agents | `src/consumer/agent.ts`, `src/provider/server.ts` |
 | Gateway | Unified USDC balance the consumer agent draws from | `src/lib/circle-tools.ts` |
 | Circle Agent Marketplace | Discovery layer — where ARIKE lists its own service and finds others | `circle services search/inspect/pay` |
-| Circle Contracts | Onchain service directory + settlement ledger | `contracts/*.sol`, `scripts/deploy-contracts.js` |
+| Circle Contracts | Onchain service directory + settlement ledger — read (`totalEarnedBy`) for the agent's trust layer, written (`recordSettlement`) after every real payment | `contracts/*.sol`, `scripts/deploy-contracts.js`, `src/lib/circle-tools.ts` |
 | CCTP V2 (Bridge) | Lets an agent on another chain consolidate USDC onto Arc | `src/lib/bridge.ts`, try with `npm run try:bridge` |
 | Swap (App Kit) | Same-chain USDC<->EURC exchange on Arc | `src/lib/swap.ts`, try with `npm run try:swap` |
 | Send (App Kit) | Direct wallet-to-wallet transfer | `src/lib/send.ts`, try with `npm run try:send` |
 | Unified Balance (App Kit) | One balance fed from any chain, spendable on any chain | `src/lib/unifiedBalance.ts`, try with `npm run try:balance` |
-| Paymaster | Base-side gas-in-USDC for provider agents not living on Arc | `src/lib/paymaster.ts` |
+| Paymaster | Base-side gas-in-USDC for provider agents not living on Arc | `src/lib/paymaster.ts`, try with `npm run try:paymaster` |
 | StableFX | Institutional KYB/AML-gated — mentioned in pitch as roadmap, not built | — |
 
 All of Bridge, Swap, Send, Unified Balance, Contracts, and the
