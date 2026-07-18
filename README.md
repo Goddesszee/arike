@@ -144,10 +144,11 @@ See `CIRCLE_SETUP.md` for the complete, verified setup walkthrough for every too
 
 ## TODO before final submission (Aug 9)
 
-- [ ] Wire real x402 payment verification in `provider/server.ts` (currently
-      accepts any non-empty `X-PAYMENT` header — fine for demo, not for real use)
+- [x] Real x402 payment verification in `provider/server.ts` — now uses
+      Circle's official `@circle-fin/x402-batching` Gateway middleware
+      (genuine cryptographic settlement, not a header check)
+- [x] Wire consumer/provider agents to call `ArikeLedger.recordSettlement()`
+      after each real Nanopayment clears
 - [ ] Deploy provider service publicly (tunnel or hosted) and register on
-      the Circle Agent Marketplace
-- [ ] Wire consumer/provider agents to actually call `ArikeLedger.recordSettlement()`
-      after each Nanopayment clears, so the Console shows real data
+      the Circle Agent Marketplace via https://forms.gle/7YFzvdmMcn1JH5tF6
 - [ ] Record 3-minute demo video
