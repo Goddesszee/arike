@@ -256,6 +256,41 @@
   .agent-log .done { color: var(--accent4); font-weight: 600; }
   .agent-log .done::before { content: '✓'; color: var(--accent4); }
 
+  .agent-wallet-card {
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+    margin-bottom: 20px;
+    box-shadow: var(--shell-shadow);
+  }
+  .awc-head { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+  .awc-icon {
+    width: 34px; height: 34px; border-radius: 9px;
+    background: rgba(14,165,233,.12);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; flex-shrink: 0;
+  }
+  .awc-title { font-size: 14px; font-weight: 700; margin: 0; }
+  .awc-sub { font-size: 11.5px; color: var(--text3); margin: 0; }
+  .awc-status {
+    margin-left: auto;
+    font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em;
+    padding: 3px 10px; border-radius: 100px;
+    background: rgba(34,197,94,.12); color: #22c55e;
+    white-space: nowrap;
+  }
+  .awc-status.offline { background: rgba(128,128,128,.14); color: var(--text3); }
+  .awc-rows { border-top: 1px solid var(--border); padding-top: 10px; display: flex; flex-direction: column; gap: 8px; }
+  .awc-row { display: flex; justify-content: space-between; align-items: center; font-size: 12.5px; }
+  .awc-row .k { color: var(--text3); }
+  .awc-row .v { color: var(--text); font-variant-numeric: tabular-nums; }
+  .awc-row .v.mono { font-family: 'SF Mono', Consolas, monospace; font-size: 12px; }
+  .awc-note {
+    border-top: 1px solid var(--border); margin-top: 10px; padding-top: 10px;
+    font-size: 11px; color: var(--text3); line-height: 1.5;
+  }
+
   .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 28px; }
   .stat {
     background: linear-gradient(145deg, var(--surface) 0%, var(--bg) 50%, var(--surface) 100%);
@@ -594,6 +629,23 @@
       <button class="btn" id="simulateBtn">Trigger agent purchase</button>
     </div>
 
+    <div class="agent-wallet-card">
+      <div class="awc-head">
+        <div class="awc-icon">🤖</div>
+        <div>
+          <p class="awc-title">Agent wallet</p>
+          <p class="awc-sub">The autonomous agent's own wallet — not yours</p>
+        </div>
+        <span class="awc-status" id="awcStatus">–</span>
+      </div>
+      <div class="awc-rows">
+        <div class="awc-row"><span class="k">Address</span><span class="v mono" id="awcAddress">–</span></div>
+        <div class="awc-row"><span class="k">Balance</span><span class="v" id="awcBalance">–</span></div>
+        <div class="awc-row"><span class="k">Last action</span><span class="v" id="awcLastAction">–</span></div>
+      </div>
+      <div class="awc-note">This is the wallet the agent uses to search, evaluate, and pay providers on its own. Your login wallet above is separate — it's how you're identified, not what the agent transacts with.</div>
+    </div>
+
     <div class="agent-log" id="agentLog">
       <div class="agent-log-header"><span class="live-dot-sm"></span>Agent activity</div>
       <div class="agent-log-body" id="agentLogBody"></div>
@@ -729,16 +781,6 @@
           </div>
           <button class="btn swap-submit-btn" id="bridgeBtn">Bridge to Arc</button>
           <div class="action-result" id="bridgeResult"></div>
-        </div>
-      </div>
-
-      <div class="action-card">
-        <h3>Unified Balance</h3>
-        <p>Check ARIKE's chain-abstracted USDC balance (read-only, no inputs needed).</p>
-        <div id="balanceLocked" class="locked-note">Log in above to try this</div>
-        <div id="balanceForm" style="display:none">
-          <button class="btn-sm" id="balanceBtn">Check Balance</button>
-          <div class="action-result" id="balanceResult"></div>
         </div>
       </div>
     </div>
@@ -891,7 +933,7 @@
 
     function updateFormLocks() {
       const connected = !!getWallet();
-      [['swapLocked', 'swapForm'], ['sendLocked', 'sendForm'], ['bridgeLocked', 'bridgeForm'], ['balanceLocked', 'balanceForm']]
+      [['swapLocked', 'swapForm'], ['sendLocked', 'sendForm'], ['bridgeLocked', 'bridgeForm']]
         .forEach(([lockedId, formId]) => {
           document.getElementById(lockedId).style.display = connected ? 'none' : 'block';
           document.getElementById(formId).style.display = connected ? 'block' : 'none';
@@ -1327,11 +1369,53 @@
         document.getElementById("statusPill").textContent = data.live ? "live · Arc Testnet" : "demo mode";
         window.__fetchedSettlements = data.settlements;
         render();
+        updateAgentWalletLastAction();
       } catch (err) {
         document.getElementById("statusPill").textContent = "connection error";
         console.error(err);
       }
     }
+
+    function updateAgentWalletLastAction() {
+      const all = [...(simulatedRows || []), ...(window.__fetchedSettlements || [])];
+      const el = document.getElementById('awcLastAction');
+      if (!all.length) { el.textContent = 'No activity yet'; return; }
+      const latest = all[0];
+      el.textContent = `Paid ${shorten(latest.provider)}, ${timeAgo(latest.timestamp)}`;
+    }
+
+    async function initAgentWalletCard() {
+      const statusEl = document.getElementById('awcStatus');
+      const addrEl = document.getElementById('awcAddress');
+      const balEl = document.getElementById('awcBalance');
+      try {
+        const configRes = await fetch('/api/config');
+        const config = await configRes.json();
+        if (config.agentWalletAddress) {
+          addrEl.textContent = shortenAddr(config.agentWalletAddress);
+          addrEl.title = config.agentWalletAddress;
+          statusEl.textContent = 'Active';
+          statusEl.classList.remove('offline');
+        } else {
+          addrEl.textContent = 'not configured';
+          statusEl.textContent = 'Offline';
+          statusEl.classList.add('offline');
+        }
+      } catch (err) {
+        addrEl.textContent = 'unavailable';
+        statusEl.textContent = 'Offline';
+        statusEl.classList.add('offline');
+      }
+      try {
+        const balRes = await fetch('/api/balance');
+        const balData = await balRes.json();
+        balEl.textContent = balData.ok && balData.result ? `${balData.result.totalConfirmedBalance} USDC` : '– USDC';
+      } catch (err) {
+        balEl.textContent = '– USDC';
+      }
+    }
+    initAgentWalletCard();
+
     document.getElementById("simulateBtn").addEventListener("click", runSimulation);
     refresh();
     setInterval(refresh, 4000);
@@ -1416,9 +1500,6 @@
           amountUsdc: document.getElementById("bridgeAmount").value,
         })
       )
-    );
-    document.getElementById("balanceBtn").addEventListener("click", () =>
-      runAction("balanceBtn", "balanceResult", () => fetch("/api/balance").then((r) => r.json()))
     );
   </script>
 </body>
