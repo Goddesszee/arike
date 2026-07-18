@@ -738,7 +738,10 @@
           document.getElementById(lockedId).style.display = connected ? 'none' : 'block';
           document.getElementById(formId).style.display = connected ? 'block' : 'none';
         });
-      if (connected) fetchBalanceHint();
+      if (connected) {
+        fetchBalanceHint();
+        fetchBridgeFromBalance();
+      }
     }
 
     function resetLoginModal() {
@@ -887,8 +890,15 @@
       const usdcText = cachedUsdcBalance !== null ? cachedUsdcBalance : '–';
       document.getElementById('sendBal').textContent = usdcText;
       const sellIsUsdc = swapDirection === 'USDC_TO_EURC';
-      document.getElementById('swapSellBal').textContent = sellIsUsdc ? usdcText : 'n/a';
-      document.getElementById('swapBuyBal').textContent = sellIsUsdc ? 'n/a' : usdcText;
+      const eurcNote = 'Unified Balance only tracks USDC — EURC balance isn\'t queryable through this endpoint';
+
+      const sellEl = document.getElementById('swapSellBal');
+      const buyEl = document.getElementById('swapBuyBal');
+      sellEl.textContent = sellIsUsdc ? usdcText : '–';
+      sellEl.title = sellIsUsdc ? '' : eurcNote;
+      buyEl.textContent = sellIsUsdc ? '–' : usdcText;
+      buyEl.title = sellIsUsdc ? eurcNote : '';
+
       const gwEl = document.getElementById('gatewayBalanceValue');
       if (gwEl) gwEl.textContent = `${usdcText} USDC`;
     }
@@ -1001,9 +1011,22 @@
       document.getElementById('bridgeChainLabel').textContent = c.label;
       document.getElementById('bridgeChainBtn').firstChild.textContent = c.icon + ' ';
     }
+    async function fetchBridgeFromBalance() {
+      if (!getWallet()) return;
+      const el = document.getElementById('bridgeFromBal');
+      el.textContent = '…';
+      try {
+        const res = await fetch(`/api/chain-balance?address=${getWallet()}&chain=${activeBridgeChain()}`);
+        const data = await res.json();
+        el.textContent = data.ok ? data.balanceUsdc : '0.000000';
+      } catch (err) {
+        el.textContent = '—';
+      }
+    }
     document.getElementById('bridgeChainBtn').addEventListener('click', () => {
       bridgeChainIndex = (bridgeChainIndex + 1) % BRIDGE_CHAINS.length;
       updateBridgeChainLabel();
+      fetchBridgeFromBalance();
     });
     function activeBridgeChain() { return BRIDGE_CHAINS[bridgeChainIndex].val; }
 
