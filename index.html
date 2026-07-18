@@ -105,7 +105,8 @@
     background: transparent; border: none; color: var(--text3);
     cursor: pointer; font-size: 15px; line-height: 1; padding: 2px 4px;
   }
-  .wallet-pill button:hover { color: var(--danger); }
+  .wallet-pill #disconnectBtn:hover { color: var(--danger); }
+  .wallet-pill #copyAddrBtn:hover { color: var(--accent3); }
 
   .connect-btn {
     padding: 10px 20px;
@@ -701,7 +702,19 @@
       const email = getEmail();
       const area = document.getElementById('walletArea');
       if (addr) {
-        area.innerHTML = `<div class="wallet-pill" title="${addr}">${email || shortenAddr(addr)}<button id="disconnectBtn" title="Log out">×</button></div>`;
+        area.innerHTML = `
+          <div class="wallet-pill" title="${email}">
+            <span>${shortenAddr(addr)}</span>
+            <button id="copyAddrBtn" title="Copy full address">⧉</button>
+            <button id="disconnectBtn" title="Log out">×</button>
+          </div>`;
+        document.getElementById('copyAddrBtn').addEventListener('click', async (e) => {
+          await navigator.clipboard.writeText(addr);
+          const btn = e.target;
+          const original = btn.textContent;
+          btn.textContent = '✓';
+          setTimeout(() => { btn.textContent = original; }, 1200);
+        });
         document.getElementById('disconnectBtn').addEventListener('click', () => {
           localStorage.removeItem('arike_wallet');
           localStorage.removeItem('arike_email');
